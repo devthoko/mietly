@@ -69,7 +69,7 @@ mietly läuft vollständig auf dem eigenen Ubuntu-Server (z. B. einer Proxmox-LX
 
 | | Minimum | Empfohlen |
 |---|---|---|
-| Betriebssystem | Ubuntu 24.04 LTS (x86_64) | Ubuntu 26.04 LTS |
+| Betriebssystem | Ubuntu 26.04 LTS (x86_64) | Ubuntu 26.04 LTS |
 | CPU | 1 Kern | 2–4 Kerne |
 | Arbeitsspeicher | 1 GB | 2–4 GB |
 | Speicherplatz | 5 GB | 30 GB (Fotos und Backups wachsen mit) |
@@ -81,7 +81,25 @@ mietly installiert sich **nativ** – ohne Docker oder andere Container. Folgend
 
 ## Installation
 
-1. Installationsdatei auf den Server kopieren, z. B. vom eigenen Rechner aus:
+### Mit einem Befehl (empfohlen)
+
+Auf einem frischen Server mit Ubuntu 26.04 LTS:
+
+```bash
+curl -fsSL https://github.com/devthoko/mietly/releases/latest/download/install.sh | sudo bash
+```
+
+Eine bestimmte Version (z. B. für reproduzierbare Installationen):
+
+```bash
+curl -fsSL https://github.com/devthoko/mietly/releases/download/v1.0.12/install.sh | sudo bash
+```
+
+Das Skript lädt das Installationspaket der Version von GitHub, prüft dessen SHA-256-Prüfsumme und startet es. Derselbe Befehl aktualisiert eine bestehende Installation (mit automatischem Backup und Rücksprung bei Fehlern). Die Anwendung startet leer – ohne Kunden, Aufträge oder Beispieldaten.
+
+### Mit der Installationsdatei (ohne Internet für mietly selbst)
+
+1. Installationsdatei (aus den GitHub-Releases) auf den Server kopieren, z. B. vom eigenen Rechner aus:
 
    ```bash
    scp mietly-1.0.0.run root@SERVER:/root/
@@ -352,7 +370,7 @@ Alle Schriften und Skripte werden lokal ausgeliefert, es gibt keine externen Abr
 
 ## Entwicklung
 
-Der Entwicklungsstand liegt auf dem Server unter `/srv/mietly-src` (ohne Git).
+Der Entwicklungsstand liegt auf dem Server unter `/srv/mietly-src`.
 
 ```bash
 cd /srv/mietly-src
@@ -366,6 +384,14 @@ sudo bash tools/build_release.sh                 # Installationspaket /root/miet
 * Die Version steht in `mietly/version.py`.
 * Vor größeren Änderungen und vor Datenbankmigrationen immer einen Snapshot anlegen.
 * Ausgelieferte Versionen werden ausschließlich über das Installationspaket aktualisiert. Das legt automatisch ein Backup an.
+
+### Version veröffentlichen
+
+Der Quellcode liegt auf GitHub (devthoko/mietly). Eine neue Version entsteht über ein Tag:
+
+1. Version in `mietly/version.py` erhöhen, Tests laufen lassen (`sudo bash tools/run_tests.sh`).
+2. Committen, Tag `vX.Y.Z` setzen (muss zur Version passen) und beides pushen.
+3. GitHub Actions (`.github/workflows/release.yml`) baut das Paket und legt das Release mit `install.sh`, `mietly-X.Y.Z.run` und der Prüfsumme an.
 
 Die Tests decken unter anderem ab:
 

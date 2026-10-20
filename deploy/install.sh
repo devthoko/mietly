@@ -53,7 +53,7 @@ step "Voraussetzungen prüfen"
 OS_ID=$(. /etc/os-release; echo "${ID:-}")
 OS_VERSION=$(. /etc/os-release; echo "${VERSION_ID:-0}")
 [ "$OS_ID" = "ubuntu" ] || die "mietly unterstützt Ubuntu (gefunden: $OS_ID)."
-dpkg --compare-versions "$OS_VERSION" ge "24.04" || die "Mindestens Ubuntu 24.04 erforderlich (gefunden: $OS_VERSION)."
+dpkg --compare-versions "$OS_VERSION" ge "26.04" || die "Ubuntu 26.04 LTS oder neuer erforderlich (gefunden: $OS_VERSION) – die mitgelieferten Python-Pakete sind für Python 3.14 gebaut."
 [ "$(uname -m)" = "x86_64" ] || die "Nur x86_64 wird unterstützt."
 avail_mb=$(df -Pm /opt | awk 'NR==2 {print $4}')
 [ "$avail_mb" -gt 1500 ] || die "Zu wenig freier Speicher unter /opt (${avail_mb} MB, benötigt mindestens 1,5 GB)."

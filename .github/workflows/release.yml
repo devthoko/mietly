@@ -1,0 +1,69 @@
+# Baut bei einem Versions-Tag (vX.Y.Z) das Installationspaket und veröffentlicht
+# es als GitHub-Release – Grundlage für die Installation mit einem Befehl:
+#   curl -fsSL https://github.com/devthoko/mietly/releases/latest/download/install.sh | sudo bash
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Version prüfen
+        run: |
+          version=$(python -c "import sys; sys.path.insert(0, '.'); from mietly.version import VERSION; print(VERSION)")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME passt nicht zu mietly/version.py ($version)"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Paket bauen
+        run: |
+          python -m pip install --upgrade pip
+          SKIP_TESTS=1 PYTHON=python bash tools/build_release.sh dist
+          ls -la dist
+
+      - name: Paket prüfen
+        run: |
+          cd dist
+          sha256sum -c "mietly-$VERSION.run.sha256"
+          bash -n install.sh
+          grep -q "version=\"$VERSION\"" install.sh
+          # Das Paket darf nur Code enthalten – keine Datenbanken, Konfigurationen oder Schlüssel.
+          line=$(awk '/^__MIETLY_ARCHIVE__$/ { print NR + 1; exit 0 }' "mietly-$VERSION.run")
+          tail -n +"$line" "mietly-$VERSION.run" | tar -tz > ../content.txt
+          if grep -Ei '\.(env|sqlite3|sql|dump|zst|pem|key|crt)$|/media/' ../content.txt; then
+            echo "Unerwartete Dateien im Paket"
+            exit 1
+          fi
+          echo "Python-Pakete: $(grep -c '/wheels/.*\.whl$' ../content.txt)"
+
+      - name: Release veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/install.sh"
+          {
+            echo "Installation mit einem Befehl (Ubuntu 26.04 LTS, x86_64):"
+            echo
+            echo '```bash'
+            echo "curl -fsSL $url | sudo bash"
+            echo '```'
+            echo
+            echo "Derselbe Befehl aktualisiert eine bestehende Installation (mit Backup und automatischem Rücksprung bei Fehlern)."
+            echo "Alternativ mietly-$VERSION.run herunterladen, mit sha256sum -c prüfen und mit sudo bash ausführen."
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/install.sh "dist/mietly-$VERSION.run" "dist/mietly-$VERSION.run.sha256" \
+            --title "mietly $VERSION" --notes-file notes.md
