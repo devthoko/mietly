@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="462" viewBox="0 0 860 462" role="img" aria-label="Der Weg eines Auftrags in neun Schritten">
+  <style>
+    .bg { fill: #fbf8f2; }
+    .card { fill: #ffffff; stroke: #e6ddcf; stroke-width: 1.5; }
+    .num { fill: #5f7a5b; }
+    .numt { fill: #ffffff; font: 600 15px 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .title { fill: #2e2823; font: 600 16px 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .sub { fill: #8a7f73; font: 13px 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .phase { fill: #b97a6c; font: italic 15px Georgia, 'Times New Roman', serif; }
+    .arrow { stroke: #c9bfb3; stroke-width: 2; fill: none; }
+    .gate { stroke: #b97a6c; stroke-width: 2; fill: none; stroke-dasharray: 5 4; }
+    .lock { fill: none; }
+    .gatet { fill: #b97a6c; font: 600 13px 'Segoe UI', Helvetica, Arial, sans-serif; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c9bfb3"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b97a6c"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="860" height="462" rx="18"/>
+
+  <!-- Reihe 1: Vorbereitung -->
+  <text class="phase" x="34" y="38">Vorbereitung</text>
+  <g transform="translate(30,52)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">1</text>
+    <text class="title" x="62" y="32">Kunde</text><text class="sub" x="62" y="52">wählen oder anlegen</text>
+  </g>
+  <g transform="translate(310,52)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">2</text>
+    <text class="title" x="62" y="32">Event</text><text class="sub" x="62" y="52">Datum, Ort, Termine</text>
+  </g>
+  <g transform="translate(590,52)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">3</text>
+    <text class="title" x="62" y="32">Angebot</text><text class="sub" x="62" y="52">Artikel, PDF, Unterschrift</text>
+  </g>
+  <path class="arrow" d="M272 88 H306" marker-end="url(#a)"/>
+  <path class="arrow" d="M552 88 H586" marker-end="url(#a)"/>
+
+  <!-- Übergang 1 -->
+  <path class="gate" d="M710 126 V146 H150 V174" marker-end="url(#g)"/>
+  <g transform="translate(372,138)">
+    <rect x="-8" y="-1" width="132" height="22" rx="11" fill="#fbf8f2"/>
+    <path class="lock" d="M3 9 h10 v9 h-10 z M5 9 v-3 a3 3 0 0 1 6 0 v3" stroke="#b97a6c" stroke-width="1.6" fill="none"/>
+    <text class="gatet" x="20" y="15">unterschrieben</text>
+  </g>
+
+  <!-- Reihe 2: Vertrag & Zahlung -->
+  <text class="phase" x="34" y="196">Vertrag &amp; Zahlung</text>
+  <g transform="translate(30,210)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">4</text>
+    <text class="title" x="62" y="32">Mietvertrag</text><text class="sub" x="62" y="52">aus Vorlage, unterschreiben</text>
+  </g>
+  <g transform="translate(310,210)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">5</text>
+    <text class="title" x="62" y="32">Rechnung</text><text class="sub" x="62" y="52">Nummer, Zahlung erfassen</text>
+  </g>
+  <g transform="translate(590,210)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">6</text>
+    <text class="title" x="62" y="32">Packliste</text><text class="sub" x="62" y="52">alles fürs Lager</text>
+  </g>
+  <path class="arrow" d="M272 246 H306" marker-end="url(#a)"/>
+  <path class="arrow" d="M552 246 H586" marker-end="url(#a)"/>
+
+  <!-- Übergang 2 -->
+  <path class="gate" d="M710 284 V304 H150 V332" marker-end="url(#g)"/>
+  <g transform="translate(388,296)">
+    <rect x="-8" y="-1" width="100" height="22" rx="11" fill="#fbf8f2"/>
+    <path class="lock" d="M3 9 h10 v9 h-10 z M5 9 v-3 a3 3 0 0 1 6 0 v3" stroke="#b97a6c" stroke-width="1.6" fill="none"/>
+    <text class="gatet" x="20" y="15">bezahlt</text>
+  </g>
+
+  <!-- Reihe 3: Durchführung -->
+  <text class="phase" x="34" y="354">Durchführung</text>
+  <g transform="translate(30,368)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">7</text>
+    <text class="title" x="62" y="32">Übergabe</text><text class="sub" x="62" y="52">Protokoll, Fotos, Unterschrift</text>
+  </g>
+  <g transform="translate(310,368)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">8</text>
+    <text class="title" x="62" y="32">Rücknahme</text><text class="sub" x="62" y="52">Mengen, Schäden, Fehlmengen</text>
+  </g>
+  <g transform="translate(590,368)">
+    <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">9</text>
+    <text class="title" x="62" y="32">Kaution &amp; Abschluss</text><text class="sub" x="62" y="52">verrechnen, erstatten, fertig</text>
+  </g>
+  <path class="arrow" d="M272 404 H306" marker-end="url(#a)"/>
+  <path class="arrow" d="M552 404 H586" marker-end="url(#a)"/>
+</svg>

@@ -113,23 +113,7 @@ Läuft im eigenen Netz, ohne Cloud. Tägliche Backups, Wiederherstellung mit ein
 
 ## 🧭 Der Weg eines Auftrags
 
-```mermaid
-flowchart TB
-    subgraph V["① Vorbereitung"]
-        direction LR
-        K["1 · Kunde"] --> E["2 · Event"] --> A["3 · Angebot"]
-    end
-    subgraph G["② Vertrag & Zahlung"]
-        direction LR
-        M["4 · Mietvertrag"] --> R["5 · Rechnung"] --> P["6 · Packliste"]
-    end
-    subgraph D["③ Durchführung"]
-        direction LR
-        U["7 · Übergabe"] --> B["8 · Rücknahme"] --> S["9 · Kaution & Abschluss"]
-    end
-    A -- "🔒 Angebot unterschrieben" --> M
-    P -- "🔒 Rechnung bezahlt" --> U
-```
+<p align="center"><img src="docs/assets/ablauf.svg" width="820" alt="Der Weg eines Auftrags: Kunde, Event, Angebot – Mietvertrag, Rechnung, Packliste – Übergabe, Rücknahme, Kaution und Abschluss"></p>
 
 Vier Regeln sind **fest eingebaut** und gelten für alle – auch für Administratoren:
 
