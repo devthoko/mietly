@@ -5,6 +5,8 @@
 >
 > Ganz ehrlich: Der Code ist zu 100 % mit KI entstanden. Mit Sicherheitskonzepten in Software kenne ich mich aus – das Programmieren selbst ist aber nicht meins. Und neben einem 40-Stunden-Job bleibt mir keine Zeit, diese App allein zu schreiben oder das Programmieren von Grund auf zu lernen.
 >
+> Deshalb sage ich auch ehrlich: **Bitte stell mietly nicht offen ins Internet.** Nutze es am besten nur im lokalen Netz oder von unterwegs über ein VPN. So weit traue ich der KI nicht.
+>
 > Wenn dir beim Lesen oder Ausprobieren etwas auffällt, freue ich mich über einen Hinweis. 💛
 
 <div align="center">
