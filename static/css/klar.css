@@ -182,10 +182,11 @@
   .ui-klar .order-aside { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; }
   .ui-klar .order-layout > .stack:not(.order-aside) { grid-column: 1; grid-row: 2; }
   .ui-klar .stepper ol { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
-  .ui-klar .stepper li { flex: 1 1 0; min-width: 104px; }
+  .ui-klar .stepper li { flex: 1 1 0; min-width: 0; }
   .ui-klar .stepper li a, .ui-klar .stepper li > span { flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 10px 6px; }
   .ui-klar .stepper li a::after { display: none; }
   .ui-klar .step-text { align-items: center; max-width: 100%; }
+  .ui-klar .step-title { hyphens: auto; overflow-wrap: anywhere; text-align: center; }
   .ui-klar .step-sum { max-width: 100%; }
   /* Die Kurzübersicht ist neben der Seitenleiste überflüssig */
   .ui-klar .quick-facts { display: none; }
