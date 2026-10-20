@@ -106,3 +106,34 @@ def test_print_rejects_external_redirect(client, order, admin, monkeypatch):
     client.force_login(admin)
     r = client.post(f"/dokumente/{offer.pk}/drucken/", {"next": "https://evil.example/"})
     assert r.url.startswith("/auftraege/")
+
+
+def test_print_jobs_are_monochrome(monkeypatch):
+    calls = []
+
+    def fake_run(args, **kw):
+        calls.append(args)
+
+        class R:
+            returncode = 0
+            stdout = "request id is mietly-9 (1 file(s))"
+            stderr = ""
+        return R()
+
+    monkeypatch.setattr(printing, "_run", fake_run)
+    monkeypatch.setattr(printing, "queue_exists", lambda: True)
+    monkeypatch.setattr(printing, "_monochrome_applied", False)
+    assert printing.print_file("/tmp/x.pdf", "Angebot") == "mietly-9"
+    lp = next(c for c in calls if c[0] == "lp")
+    assert "print-color-mode=monochrome" in lp and "ColorModel=Gray" in lp
+    lpadmin = next(c for c in calls if c[0] == "lpadmin")
+    assert "print-color-mode-default=monochrome" in lpadmin
+
+
+def test_setup_sets_monochrome_default(monkeypatch):
+    calls = []
+    monkeypatch.setattr(printing, "probe", lambda v: printing.Probe(host="10.0.0.7", port=None, ipp_uri="ipp://10.0.0.7:631/ipp/print",
+                                                                     everywhere=True, make_model="Canon TS6500i"))
+    monkeypatch.setattr(printing, "_run", lambda args, **kw: calls.append(args))
+    printing.setup("10.0.0.7")
+    assert "print-color-mode-default=monochrome" in calls[0]

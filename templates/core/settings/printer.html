@@ -1,7 +1,7 @@
 {% extends "core/settings/_layout.html" %}
 {% block settings_title %}Drucker{% endblock %}
 {% block settings_content %}
-<div class="alert alert-info">{% icon 'printer' %}<div>Binden Sie Ihren Netzwerkdrucker über seine IP-Adresse ein. mietly erkennt das Modell, wählt den passenden Treiber automatisch und druckt eine Testseite. Danach erscheint bei Angeboten, Verträgen, Rechnungen und Protokollen der Knopf <strong>Drucken</strong>.</div></div>
+<div class="alert alert-info">{% icon 'printer' %}<div>Binden Sie Ihren Netzwerkdrucker über seine IP-Adresse ein. mietly erkennt das Modell, wählt den passenden Treiber automatisch und druckt eine Testseite. Danach erscheint bei Angeboten, Verträgen, Rechnungen und Protokollen der Knopf <strong>Drucken</strong>. Gedruckt wird immer in Schwarz-Weiß.</div></div>
 
 {% if company.printer_ready %}
 <div class="card">
@@ -10,6 +10,7 @@
     <dt>Adresse</dt><dd>{{ company.printer_host }}</dd>
     {% if company.printer_model %}<dt>Modell</dt><dd>{{ company.printer_model }}</dd>{% endif %}
     <dt>Treiber</dt><dd>{{ company.printer_driver }}</dd>
+    <dt>Farbe</dt><dd>Schwarz-Weiß (für alle Drucke aus mietly)</dd>
     {% if company.printer_last_test %}<dt>Letzte Testseite</dt><dd>{{ company.printer_last_test|dt }} – {{ company.printer_last_result }}</dd>{% endif %}
   </dl></div>
   <div class="card-foot">

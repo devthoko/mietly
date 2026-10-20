@@ -26,6 +26,13 @@ HOST_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?(?::\d{1,
 IPP_PATHS = ["/ipp/print", "/ipp", "/"]
 SNMP_BACKEND = "/usr/lib/cups/backend/snmp"
 
+# Alle Drucke aus mietly erfolgen in Schwarz-Weiß. „print-color-mode“ ist das
+# IPP-Standardattribut (treiberlos: CUPS erzeugt dann Graustufen-Raster),
+# „ColorModel=Gray“ die übliche Option der Herstellertreiber (HPLIP, Gutenprint).
+MONOCHROME = ["-o", "print-color-mode=monochrome", "-o", "ColorModel=Gray"]
+MONOCHROME_DEFAULTS = ["-o", "print-color-mode-default=monochrome", "-o", "ColorModel=Gray"]
+_monochrome_applied = False
+
 
 class PrinterError(Exception):
     pass
@@ -157,7 +164,7 @@ def setup(value):
             raise PrinterError(f"Unter {value} wurde kein Drucker gefunden. Ist der Drucker eingeschaltet und im selben Netzwerk?")
     _run(["lpadmin", "-p", QUEUE, "-E", "-v", uri, "-m", model,
           "-D", "mietly", "-o", "printer-error-policy=abort-job", "-o", "media-default=iso_a4_210x297mm",
-          "-o", "printer-is-shared=false"], timeout=90)
+          "-o", "printer-is-shared=false", *MONOCHROME_DEFAULTS], timeout=90)
     _run(["cupsenable", QUEUE], check=False)
     _run(["cupsaccept", QUEUE], check=False)
     return uri, driver, p.make_model
@@ -177,9 +184,19 @@ def print_file(path, title, copies=1):
     if not queue_exists():
         raise PrinterError("Es ist kein Drucker eingerichtet (Einstellungen → Drucker).")
     _run(["cupsenable", QUEUE], check=False)  # nach einem Fehler wieder freigeben
-    res = _run(["lp", "-d", QUEUE, "-n", str(max(1, min(int(copies), 20))), "-t", title[:120], "--", str(path)], timeout=30)
+    ensure_monochrome()
+    res = _run(["lp", "-d", QUEUE, "-n", str(max(1, min(int(copies), 20))), "-t", title[:120], *MONOCHROME, "--", str(path)], timeout=30)
     m = re.search(r"request id is (\S+)", res.stdout)
     return m.group(1) if m else ""
+
+
+def ensure_monochrome():
+    """Schwarz-Weiß auch als Voreinstellung der Warteschlange setzen – einmal je Prozess,
+    damit auch Drucker, die vor dieser Version eingerichtet wurden, umgestellt werden."""
+    global _monochrome_applied
+    if not _monochrome_applied:
+        _run(["lpadmin", "-p", QUEUE, *MONOCHROME_DEFAULTS], timeout=30, check=False)
+        _monochrome_applied = True
 
 
 def job_state(job_id):

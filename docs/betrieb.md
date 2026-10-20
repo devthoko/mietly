@@ -26,7 +26,7 @@ sudo mietly logs -f       # live mitlesen
 | Geschäftsregeln | Angebotsgültigkeit, Zahlungsziel, inklusive Miettage, Puffertage, Kaution vor Übergabe, Stornobedingungen, Lieferpauschale |
 | Vorlagen | Mietvertrag, Mietbedingungen, Widerrufsbelehrung, Datenschutzhinweis, Dokument- und E-Mail-Texte (mit Platzhaltern und Versionsverlauf) |
 | E-Mail | SMTP-Server, Absender, BCC, Anrede (förmlich oder persönlich), Testversand, Versandprotokoll |
-| Drucker | Netzwerkdrucker per IP-Adresse einbinden: Modell und Treiber werden automatisch erkannt (treiberlos per IPP Everywhere/AirPrint, sonst HPLIP, Gutenprint oder brlaser), anschließend wird eine Testseite gedruckt. Danach haben alle Dokumente einen Knopf „Drucken“. |
+| Drucker | Netzwerkdrucker per IP-Adresse einbinden: Modell und Treiber werden automatisch erkannt (treiberlos per IPP Everywhere/AirPrint, sonst HPLIP, Gutenprint oder brlaser), anschließend wird eine Testseite gedruckt. Danach haben alle Dokumente einen Knopf „Drucken“. Gedruckt wird immer in Schwarz-Weiß. |
 | WebDAV / Nextcloud | optionale Synchronisierung von Dokumenten und verschlüsselten Backups |
 | Benutzer | Administratoren und Mitarbeiter |
 | Backups | Übersicht, manuelles Backup, Download |
