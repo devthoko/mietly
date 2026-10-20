@@ -72,11 +72,11 @@
   <text class="phase" x="34" y="354">Durchführung</text>
   <g transform="translate(30,368)">
     <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">7</text>
-    <text class="title" x="62" y="32">Übergabe</text><text class="sub" x="62" y="52">Protokoll, Fotos, Unterschrift</text>
+    <text class="title" x="62" y="32">Übergabe</text><text class="sub" x="62" y="52">Protokoll und Fotos</text>
   </g>
   <g transform="translate(310,368)">
     <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">8</text>
-    <text class="title" x="62" y="32">Rücknahme</text><text class="sub" x="62" y="52">Mengen, Schäden, Fehlmengen</text>
+    <text class="title" x="62" y="32">Rücknahme</text><text class="sub" x="62" y="52">Mengen und Schäden prüfen</text>
   </g>
   <g transform="translate(590,368)">
     <rect class="card" width="240" height="72" rx="12"/><circle class="num" cx="34" cy="36" r="16"/><text class="numt" x="34" y="41" text-anchor="middle">9</text>
