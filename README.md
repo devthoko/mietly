@@ -1,3 +1,12 @@
+> [!NOTE]
+> **Warum es mietly gibt**
+>
+> Meine Mama möchte sich mit einem Verleih selbstständig machen – und Computer sind nicht ihre Welt. Damit sie sich auf ihre Kundinnen und Kunden konzentrieren kann statt auf Zettel und Tabellen, habe ich mit mietly den gesamten Ablauf in einer einzigen Anwendung festgehalten: vom ersten Angebot bis zur zurückgezahlten Kaution.
+>
+> Ganz ehrlich: Der Code ist zu 100 % mit KI entstanden. Mit Sicherheitskonzepten in Software kenne ich mich aus – das Programmieren selbst ist aber nicht meins. Und neben einem 40-Stunden-Job bleibt mir keine Zeit, diese App allein zu schreiben oder das Programmieren von Grund auf zu lernen.
+>
+> Wenn dir beim Lesen oder Ausprobieren etwas auffällt, freue ich mich über einen Hinweis. 💛
+
 <div align="center">
 
 <img src="docs/assets/logo.svg" width="88" alt="mietly">
