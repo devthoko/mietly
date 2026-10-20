@@ -1,13 +1,13 @@
 > [!NOTE]
-> **Warum es mietly gibt**
+> ### Ein paar ehrliche Worte vorab
 >
-> Meine Mama möchte sich mit einem Verleih selbstständig machen – und Computer sind nicht ihre Welt. Damit sie sich auf ihre Kundinnen und Kunden konzentrieren kann statt auf Zettel und Tabellen, habe ich mit mietly den gesamten Ablauf in einer einzigen Anwendung festgehalten: vom ersten Angebot bis zur zurückgezahlten Kaution.
+> mietly ist für meine Mama entstanden. Sie möchte sich mit einem Verleih selbstständig machen – und Computer sind, sagen wir mal, nicht so ganz ihre Welt. Ich wollte nicht, dass sie sich zwischen Tabellen, Vorlagen, E-Mails und Zetteln verliert, sondern dass sie jeden Morgen einfach sieht, was als Nächstes dran ist. Also habe ich den ganzen Weg in eine einzige Anwendung gepackt: vom ersten Angebot bis zu dem Moment, in dem die Kaution zurück beim Kunden ist. Damit sie den Kopf frei hat für das, was ihr wirklich Spaß macht – ihre Kundinnen und Kunden und deren Feiern.
 >
-> Ganz ehrlich: Der Code ist zu 100 % mit KI entstanden. Mit Sicherheitskonzepten in Software kenne ich mich aus – das Programmieren selbst ist aber nicht meins. Und neben einem 40-Stunden-Job bleibt mir keine Zeit, diese App allein zu schreiben oder das Programmieren von Grund auf zu lernen.
+> Und weil Ehrlichkeit dazugehört: **Den Code habe nicht ich geschrieben, sondern zu 100 % eine KI.** Mit Sicherheitskonzepten in Software kenne ich mich gut aus und weiß, worauf es dabei ankommt. Das Programmieren selbst ist aber einfach nicht meins. Neben einem 40-Stunden-Job habe ich weder die Zeit, so eine Anwendung allein zu bauen, noch, das Programmieren nebenher richtig zu lernen. Die KI hat es mir möglich gemacht, trotzdem etwas Brauchbares für meine Mama auf die Beine zu stellen – und darüber bin ich froh.
 >
-> Deshalb sage ich auch ehrlich: **Bitte stell mietly nicht offen ins Internet.** Nutze es am besten nur im lokalen Netz oder von unterwegs über ein VPN. So weit traue ich der KI nicht.
+> Genau deshalb bitte ich dich aber auch um Vorsicht: **Stell mietly nicht offen ins Internet.** Betreibe es im eigenen Netzwerk, und wenn du von unterwegs darauf zugreifen möchtest, dann über ein VPN. Auch wenn beim Bauen auf Sicherheit geachtet wurde: So weit, dass ich Kundendaten ungeschützt im Internet anvertrauen würde, traue ich der KI nicht.
 >
-> Wenn dir beim Lesen oder Ausprobieren etwas auffällt, freue ich mich über einen Hinweis. 💛
+> Wenn du mietly selbst ausprobierst: Schön, dass du hier bist! Das hier ist ein Familienprojekt und kein Produkt einer Softwarefirma. Wenn dir etwas auffällt – ein Fehler, eine Idee oder einfach ein Gedanke –, freue ich mich über eine Nachricht. 💛
 
 <div align="center">
 
