@@ -1,0 +1,33 @@
+[Unit]
+Description=mietly – Verwaltung für Event- und Dekorationsverleih
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=mietly
+Group=mietly
+EnvironmentFile=/etc/mietly/mietly.env
+WorkingDirectory=/opt/mietly/current
+ExecStart=/opt/mietly/current/.venv/bin/gunicorn mietly.wsgi:application \
+    --bind unix:/run/mietly/gunicorn.sock \
+    --workers 4 --threads 2 --timeout 120 --preload \
+    --access-logfile - --error-logfile - --log-level warning
+ExecReload=/bin/kill -s HUP $MAINPID
+RuntimeDirectory=mietly
+RuntimeDirectoryMode=0750
+UMask=0027
+Restart=on-failure
+RestartSec=3
+KillMode=mixed
+TimeoutStopSec=30
+
+# Härtung
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/mietly /var/backups/mietly
+
+[Install]
+WantedBy=multi-user.target

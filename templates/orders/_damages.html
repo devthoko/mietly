@@ -1,0 +1,46 @@
+{# Erwartet: damages, damage_form (optional), editable, next #}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'triangle-alert' 18 %} Schäden, Fehlmengen & Zusatzkosten</h2>
+    {% if editable and damage_form %}<button class="btn btn-sm" type="button" data-open-modal="dlg-damage">{% icon 'plus' 14 %} Posten hinzufügen</button>{% endif %}</div>
+  {% if damages %}
+  <div class="doc-list">
+    {% for dm in damages %}
+    <div class="doc-item" style="align-items:flex-start">
+      <span class="doc-icon" style="background:var(--warning-soft);color:var(--warning)">{% if dm.kind == "missing" %}{% icon 'search-x' 16 %}{% elif dm.kind == "damaged" %}{% icon 'hammer' 16 %}{% else %}{% icon 'sparkles' 16 %}{% endif %}</span>
+      {% if editable and dm.settlement == "open" %}
+      <form method="post" action="{% url 'orders:update_damage' order.pk dm.pk %}" class="row wrap" style="flex:1;gap:8px;align-items:center">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        <input class="input input-sm" name="description" value="{{ dm.description }}" style="flex:1;min-width:200px">
+        <div class="input-suffix"><input class="input input-sm price-input" type="number" step="0.01" min="0" name="amount" value="{{ dm.amount|stringformat:'.2f' }}"><span>€</span></div>
+        {% if dm.article %}{% if order.return_record.is_completed %}{% if dm.write_off %}<span class="tiny subtle">aus Bestand gebucht</span>{% endif %}{% else %}<label class="check small" title="Artikel ist nicht mehr vermietbar und wird beim Abschluss der Rücknahme aus dem Bestand gebucht"><input type="checkbox" name="write_off" value="1" {% if dm.write_off %}checked{% endif %}> ausbuchen</label>{% endif %}{% endif %}
+        <button class="btn btn-sm" type="submit">Speichern</button>
+      </form>
+      <form method="post" action="{% url 'orders:delete_damage' order.pk dm.pk %}" data-confirm="Posten entfernen?">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><button class="btn btn-ghost btn-icon btn-sm" title="Entfernen">{% icon 'trash-2' 14 %}</button></form>
+      {% else %}
+      <div style="flex:1"><div class="strong small">{{ dm.description }}</div><div class="doc-meta">{{ dm.get_kind_display }}{% if dm.write_off %} · aus Bestand gebucht{% endif %} · {{ dm.get_settlement_display }}</div></div>
+      <span class="num strong">{{ dm.amount|euro }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-body small subtle">Keine Schäden oder Fehlmengen erfasst. 👍</div>
+  {% endif %}
+  {% if editable %}<div class="card-foot" style="justify-content:flex-start"><span class="small subtle">{% icon 'info' 14 %} Schadensersatz für Beschädigung oder Verlust ist nicht umsatzsteuerbar; Zusatzleistungen wie eine Sonderreinigung werden mit Umsatzsteuer berechnet.</span></div>{% endif %}
+</div>
+
+{% if editable and damage_form %}
+<dialog class="modal" id="dlg-damage">
+  <form method="post" action="{% url 'orders:add_damage' order.pk %}" novalidate>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    <div class="modal-head"><h2>Posten hinzufügen</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+    <div class="modal-body"><div class="form-grid">
+      {% field damage_form.kind "col-3" %}{% field damage_form.article "col-3" %}
+      {% field damage_form.description "col-6" %}
+      {% field damage_form.quantity "col-2" %}{% field damage_form.amount "col-2" %}
+      <div class="col-6">{% field damage_form.write_off %}</div>
+    </div></div>
+    <div class="modal-foot"><button class="btn" type="button" data-close-modal>Abbrechen</button><button class="btn btn-primary" type="submit">Hinzufügen</button></div>
+  </form>
+</dialog>
+{% endif %}

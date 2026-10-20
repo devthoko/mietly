@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Kalender{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Kalender</div><h1>{{ first.month|month_name }} {{ first.year }}</h1></div>
+  <div class="page-actions compact">
+    <a class="btn btn-icon" href="?jahr={{ prev.year }}&monat={{ prev.month }}" aria-label="Vorheriger Monat">{% icon 'chevron-left' 16 %}</a>
+    <a class="btn" href="?">Heute</a>
+    <a class="btn btn-icon" href="?jahr={{ next.year }}&monat={{ next.month }}" aria-label="Nächster Monat">{% icon 'chevron-right' 16 %}</a>
+  </div>
+</div>
+<div class="card">
+  <div class="card-head"><div class="legend"><span class="l-out">Übergabe</span><span class="l-event">Veranstaltung</span><span class="l-in">Rückgabe</span></div></div>
+  <div class="cal">
+    {% for w in weekdays %}<div class="cal-head">{{ w|slice:":2" }}<span class="hide-sm">{{ w|slice:"2:" }}</span></div>{% endfor %}
+    {% for week in grid %}{% for day in week %}
+      <div class="cal-day{% if day.other %} other{% endif %}{% if day.today %} today{% endif %}">
+        <span class="cal-num">{{ day.date.day }}</span>
+        {% for e in day.events|slice:":4" %}<a class="cal-ev ev-{{ e.kind }}" href="{{ e.order.get_absolute_url }}" title="{{ e.label }} – {{ e.order.customer }}">{{ e.label }}</a>{% endfor %}
+        {% if day.events|length > 4 %}<span class="tiny subtle">+{{ day.events|length|add:"-4" }} weitere</span>{% endif %}
+      </div>
+    {% endfor %}{% endfor %}
+  </div>
+  <div class="cal-agenda">
+    {% for day in agenda %}
+    <div class="agenda-day{% if day.today %} today{% endif %}">
+      <div class="agenda-day-head">{{ day.date|dlong }}{% if day.today %} · heute{% endif %}</div>
+      {% for e in day.events %}
+      <a class="agenda-item" href="{{ e.order.get_absolute_url }}">
+        <span class="agenda-kind {% if e.kind == 'out' %}out{% elif e.kind == 'in' %}in{% else %}ev{% endif %}">{% if e.kind == 'out' %}{% icon 'arrow-up-right' 16 %}{% elif e.kind == 'in' %}{% icon 'arrow-down-left' 16 %}{% else %}{% icon 'party-popper' 16 %}{% endif %}</span>
+        <div style="flex:1;min-width:0"><div class="strong">{{ e.label }}</div><div class="small subtle">{{ e.order.customer }}</div></div>
+        {% icon 'chevron-right' 16 'subtle' %}
+      </a>
+      {% endfor %}
+    </div>
+    {% empty %}
+    <div class="empty"><p>In diesem Monat stehen keine Termine an.</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

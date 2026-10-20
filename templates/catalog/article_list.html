@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Artikel{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Sortiment</div><h1>Mietartikel</h1></div>
+  <div class="page-actions">
+    <button class="btn" type="button" data-open-modal="dlg-categories">{% icon 'tags' 16 %} Kategorien</button>
+    <a class="btn btn-primary" href="{% url 'catalog:article_create' %}">{% icon 'plus' 16 %} Artikel anlegen</a>
+  </div>
+</div>
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Bezeichnung, Nummer, Lagerort …"></div>
+    <select class="input" name="kategorie" style="width:auto" data-autosubmit-select>
+      <option value="">Alle Kategorien</option>
+      {% for c in categories %}<option value="{{ c.pk }}" {% if cat == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+    <input type="hidden" name="status" value="{{ show }}">
+    <div class="tabs" style="margin-left:auto">
+      <a href="{% query status='aktiv' seite='' %}" class="{% if show == 'aktiv' %}active{% endif %}">Aktiv</a>
+      <a href="{% query status='inaktiv' seite='' %}" class="{% if show == 'inaktiv' %}active{% endif %}">Inaktiv</a>
+      <a href="{% query status='alle' seite='' %}" class="{% if show == 'alle' %}active{% endif %}">Alle</a>
+    </div>
+  </form>
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Artikel</th><th class="hide-sm">Kategorie</th><th class="hide-sm">Lagerort</th><th class="right">Bestand</th><th class="right">Mietpreis</th><th class="right hide-sm">Kaution</th></tr></thead>
+    <tbody>
+    {% for a in page %}
+      <tr class="link" data-href="{{ a.get_absolute_url }}">
+        <td><div class="row">{% if a.image %}<img class="thumb" src="{{ a.image.url }}" alt="" loading="lazy">{% else %}<span class="thumb">{% icon 'image' 16 %}</span>{% endif %}
+          <div><div class="cell-title">{{ a.name }}{% if not a.active %} {% status_badge "inaktiv" %}{% endif %}</div><div class="cell-sub">{{ a.number }}</div></div></div></td>
+        <td class="hide-sm">{{ a.category|default:"—" }}</td>
+        <td class="hide-sm">{{ a.storage_location|default:"—" }}</td>
+        <td class="num" data-label="Bestand:">{{ a.stock }}</td>
+        <td class="right num">{{ a.price|euro }}</td>
+        <td class="right num hide-sm">{{ a.deposit_per_unit|euro }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'flower-2' 22 %}</div><h3>{% if q or cat %}Keine passenden Artikel{% else %}Noch keine Artikel{% endif %}</h3>
+    <p>Erfassen Sie Ihre Vasen, Kerzenständer, Traubögen und weiteres Eventzubehör mit Foto, Bestand und Preisen.</p>
+    <a class="btn btn-primary" href="{% url 'catalog:article_create' %}">Artikel anlegen</a></div>
+  {% endif %}
+</div>
+
+<dialog class="modal" id="dlg-categories">
+  <div class="modal-head"><h2>Kategorien</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+  <div class="modal-body stack">
+    {% for c in categories %}
+    <form method="post" action="{% url 'catalog:category_edit' c.pk %}" class="row">{% csrf_token %}
+      <input class="input input-sm" name="name" value="{{ c.name }}" required>
+      <input class="input input-sm qty-input" name="sort" type="number" min="0" value="{{ c.sort }}" title="Reihenfolge">
+      <button class="btn btn-sm" type="submit">Speichern</button>
+      <button class="btn btn-sm btn-ghost btn-icon" name="delete" value="1" title="Löschen" data-confirm="Kategorie „{{ c.name }}“ löschen?">{% icon 'trash-2' 14 %}</button>
+    </form>
+    {% empty %}<p class="subtle small">Noch keine Kategorien.</p>{% endfor %}
+    <hr style="margin:4px 0">
+    <form method="post" action="{% url 'catalog:category_create' %}" class="row">{% csrf_token %}
+      <input class="input input-sm" name="name" placeholder="Neue Kategorie, z. B. Vasen" required>
+      <input type="hidden" name="sort" value="0">
+      <button class="btn btn-sm btn-primary" type="submit">{% icon 'plus' 14 %} Hinzufügen</button>
+    </form>
+  </div>
+</dialog>
+{% endblock %}

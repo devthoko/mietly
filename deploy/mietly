@@ -1,0 +1,200 @@
+#!/bin/bash
+# mietly – Verwaltungsbefehl
+# Installiert nach /usr/local/bin/mietly
+set -euo pipefail
+
+APP_ROOT=/opt/mietly
+CURRENT=$APP_ROOT/current
+ENV_FILE=/etc/mietly/mietly.env
+BACKUP_DIR=/var/backups/mietly
+DATA_DIR=/var/lib/mietly
+
+c_ok=$'\e[32m'; c_warn=$'\e[33m'; c_err=$'\e[31m'; c_dim=$'\e[2m'; c_off=$'\e[0m'
+info() { echo "${c_ok}▸${c_off} $*"; }
+warn() { echo "${c_warn}!${c_off} $*" >&2; }
+die()  { echo "${c_err}✗ $*${c_off}" >&2; exit 1; }
+
+need_root() { [ "$(id -u)" -eq 0 ] || die "Bitte mit sudo ausführen: sudo mietly $*"; }
+
+manage() {
+    # Django-Verwaltungsbefehl als Dienstbenutzer mit geladener Konfiguration
+    ( cd "$CURRENT" && runuser -u mietly -- bash -c 'set -a; . "$0"; set +a; exec "$1/.venv/bin/python" "$1/manage.py" "${@:2}"' "$ENV_FILE" "$CURRENT" "$@" )
+}
+
+wait_healthy() {
+    for _ in $(seq 1 30); do
+        if curl -fsk -o /dev/null --max-time 3 https://127.0.0.1/healthz; then info "mietly antwortet."; return 0; fi
+        sleep 1
+    done
+    warn "mietly antwortet nicht – Details: sudo mietly logs"
+    return 1
+}
+
+version() { cat "$CURRENT/VERSION" 2>/dev/null || "$CURRENT/.venv/bin/python" -c "import sys; sys.path.insert(0, '$CURRENT'); from mietly.version import VERSION; print(VERSION)"; }
+
+cmd_status() {
+    echo "mietly $(version)  ${c_dim}($(readlink -f "$CURRENT"))${c_off}"
+    for unit in mietly nginx postgresql mietly-backup.timer mietly-mail.timer; do
+        state=$(systemctl is-active "$unit" 2>/dev/null || true)
+        [ "$state" = active ] && echo "  ${c_ok}●${c_off} $unit" || echo "  ${c_err}●${c_off} $unit ($state)"
+    done
+    last=$(ls -1t "$BACKUP_DIR"/mietly-backup-*.tar.zst 2>/dev/null | head -1 || true)
+    if [ -n "$last" ]; then
+        echo "  Letztes Backup: $(basename "$last") ($(du -h "$last" | cut -f1))"
+    else
+        warn "Noch kein Backup vorhanden."
+    fi
+    if curl -fsk -o /dev/null --max-time 5 https://127.0.0.1/healthz; then
+        echo "  ${c_ok}●${c_off} Anwendung antwortet"
+    else
+        echo "  ${c_err}●${c_off} Anwendung antwortet nicht"
+    fi
+}
+
+cmd_backup() {
+    need_root backup
+    info "Erstelle Backup …"
+    manage backup --reason "${1:-manuell}"
+}
+
+verify_backup() {
+    local file=$1
+    [ -f "$file" ] || die "Datei nicht gefunden: $file"
+    if [ -f "$file.sha256" ]; then
+        ( cd "$(dirname "$file")" && sha256sum -c --quiet "$(basename "$file").sha256" ) || die "Prüfsumme stimmt nicht – das Backup ist beschädigt."
+        info "Prüfsumme in Ordnung."
+    else
+        warn "Keine Prüfsummendatei gefunden – Prüfung übersprungen."
+    fi
+    tar --zstd -tf "$file" database.dump >/dev/null 2>&1 || die "Das Archiv enthält keinen Datenbank-Dump."
+}
+
+cmd_restore() {
+    need_root restore
+    local file="" with_config=0 confirmed=0
+    for arg in "$@"; do
+        case "$arg" in
+            --mit-konfiguration) with_config=1 ;;
+            --ja) confirmed=1 ;;
+            *) file=$arg ;;
+        esac
+    done
+    [ -n "$file" ] || die "Aufruf: sudo mietly restore <Backup-Datei> [--mit-konfiguration] [--ja]"
+    file=$(readlink -f "$file")
+    verify_backup "$file"
+    if [ $confirmed -eq 0 ]; then
+        echo
+        warn "Die aktuelle Datenbank und alle Dateien werden durch den Stand des Backups ersetzt."
+        warn "Vorher wird automatisch eine Sicherung des aktuellen Stands angelegt."
+        read -r -p "Fortfahren? Bitte 'ja' eingeben: " answer
+        [ "$answer" = "ja" ] || die "Abgebrochen."
+    fi
+
+    info "Sichere aktuellen Stand …"
+    manage backup --reason vor-wiederherstellung || warn "Sicherung des aktuellen Stands nicht möglich – fahre fort."
+
+    tmp=$(mktemp -d /var/tmp/mietly-restore.XXXXXX)
+    trap 'rm -rf "$tmp"' EXIT
+    tar --zstd -xf "$file" -C "$tmp"
+    chown -R mietly:mietly "$tmp"
+
+    info "Stoppe mietly …"
+    systemctl stop mietly
+
+    info "Stelle Datenbank wieder her …"
+    runuser -u postgres -- dropdb --if-exists mietly
+    runuser -u postgres -- createdb -O mietly -E UTF8 --template=template0 --locale=de_DE.UTF-8 --locale-provider=icu --icu-locale=de-DE mietly
+    runuser -u mietly -- pg_restore --no-owner --role=mietly -d mietly "$tmp/database.dump"
+
+    info "Stelle Dateien wieder her …"
+    stamp=$(date +%Y%m%d-%H%M%S)
+    if [ -d "$DATA_DIR/media" ]; then
+        mv "$DATA_DIR/media" "$DATA_DIR/media.vor-wiederherstellung-$stamp"
+    fi
+    if [ -d "$tmp/media" ]; then
+        mv "$tmp/media" "$DATA_DIR/media"
+    else
+        install -d -o mietly -g mietly -m 0750 "$DATA_DIR/media"
+    fi
+    chown -R mietly:mietly "$DATA_DIR/media"
+
+    if [ $with_config -eq 1 ] && [ -f "$tmp/mietly.env" ]; then
+        info "Übernehme Konfiguration aus dem Backup …"
+        cp "$ENV_FILE" "$ENV_FILE.vor-wiederherstellung-$stamp"
+        install -o root -g mietly -m 0640 "$tmp/mietly.env" "$ENV_FILE"
+    elif [ -f "$tmp/mietly.env" ] && ! diff -q <(grep ENCRYPTION_KEY "$tmp/mietly.env") <(grep ENCRYPTION_KEY "$ENV_FILE") >/dev/null; then
+        warn "Der Verschlüsselungsschlüssel im Backup unterscheidet sich von der aktuellen Konfiguration."
+        warn "Gespeicherte SMTP-/WebDAV-Passwörter müssen ggf. neu eingegeben werden"
+        warn "(oder Wiederherstellung mit --mit-konfiguration wiederholen)."
+    fi
+
+    info "Prüfe Datenbankschema …"
+    manage migrate --noinput
+    systemctl start mietly
+    wait_healthy || true
+    info "Wiederherstellung abgeschlossen. Der vorherige Dateistand liegt unter $DATA_DIR/media.vor-wiederherstellung-$stamp"
+}
+
+cmd_rollback() {
+    need_root rollback
+    local current_target previous
+    current_target=$(readlink -f "$CURRENT")
+    previous=$(ls -1d "$APP_ROOT"/releases/*/ 2>/dev/null | sed 's#/$##' | grep -v "^$current_target\$" | sort -V | tail -1 || true)
+    [ -n "$previous" ] || die "Keine vorherige Version vorhanden."
+    local pre_update
+    pre_update=$(ls -1t "$BACKUP_DIR"/mietly-backup-*-vor-update*.tar.zst 2>/dev/null | head -1 || true)
+    echo "Aktuell:  $(basename "$current_target")"
+    echo "Zurück zu: $(basename "$previous")"
+    [ -n "$pre_update" ] && echo "Backup vor dem letzten Update: $(basename "$pre_update")"
+    warn "Daten, die seit dem Update erfasst wurden, gehen beim Zurückspielen des Backups verloren."
+    read -r -p "Version zurücksetzen und Backup vor dem Update wiederherstellen? Bitte 'ja' eingeben: " answer
+    [ "$answer" = "ja" ] || die "Abgebrochen."
+    ln -sfn "$previous" "$CURRENT.new" && mv -T "$CURRENT.new" "$CURRENT"
+    if [ -n "$pre_update" ]; then
+        cmd_restore "$pre_update" --ja || die "Wiederherstellung fehlgeschlagen."
+    else
+        systemctl restart mietly
+        wait_healthy || true
+    fi
+    info "Zurückgesetzt auf $(basename "$previous")."
+}
+
+cmd_logs() {
+    if [ "${1:-}" = "-f" ]; then journalctl -u mietly -u mietly-backup -u mietly-mail -f; else journalctl -u mietly -u mietly-backup -u mietly-mail -n "${1:-200}" --no-pager; fi
+}
+
+usage() {
+    cat <<EOF
+mietly – Verwaltungsbefehl
+
+  sudo mietly status                 Zustand von Anwendung, Diensten und Backups
+  sudo mietly start|stop|restart     Anwendung starten / stoppen / neu starten
+  sudo mietly logs [-f|ANZAHL]       Protokoll anzeigen (-f = live mitlesen)
+  sudo mietly backup                 Backup jetzt erstellen
+  sudo mietly backups                Vorhandene Backups auflisten
+  sudo mietly restore DATEI [--mit-konfiguration] [--ja]
+                                     Backup wiederherstellen (--ja: ohne Rückfrage)
+  sudo mietly update DATEI.run       Auf eine neue Version aktualisieren
+  sudo mietly rollback               Zur vorherigen Version zurückkehren
+  sudo mietly create-admin           Administrator-Konto anlegen
+  sudo mietly manage BEFEHL …        Django-Verwaltungsbefehl ausführen
+  mietly version                     Installierte Version anzeigen
+EOF
+}
+
+case "${1:-}" in
+    status)   cmd_status ;;
+    start|restart) need_root "$1"; systemctl "$1" mietly; wait_healthy ;;
+    stop)     need_root stop; systemctl stop mietly; info "mietly wurde gestoppt." ;;
+    logs)     shift; cmd_logs "$@" ;;
+    backup)   shift; cmd_backup "$@" ;;
+    backups)  ls -lh "$BACKUP_DIR"/mietly-backup-*.tar.zst 2>/dev/null || echo "Keine Backups vorhanden." ;;
+    restore)  shift; cmd_restore "$@" ;;
+    update)   need_root update; shift; [ -n "${1:-}" ] || die "Aufruf: sudo mietly update mietly-X.Y.Z.run"; bash "$1" ;;
+    rollback) cmd_rollback ;;
+    create-admin) need_root create-admin; manage create_admin ;;
+    manage)   need_root manage; shift; manage "$@" ;;
+    version)  version ;;
+    ""|help|-h|--help) usage ;;
+    *) usage; exit 1 ;;
+esac

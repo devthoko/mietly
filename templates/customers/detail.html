@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="row" style="gap:14px">
+    <span class="avatar accent" style="width:48px;height:48px;font-size:17px">{{ customer.full_name|initials }}</span>
+    <div><div class="eyebrow"><a href="{% url 'customers:list' %}">Kunden</a> {% icon 'chevron-right' 12 %} {{ customer.number }}</div><h1>{{ customer.full_name }}</h1></div>
+  </div>
+  <div class="page-actions">
+    {% if not customer.is_anonymized %}
+    <a class="btn" href="{% url 'customers:edit' customer.pk %}">{% icon 'pencil' 16 %} Bearbeiten</a>
+    <form method="post" action="{% url 'orders:create' %}">{% csrf_token %}<input type="hidden" name="kunde" value="{{ customer.pk }}">
+      <button class="btn btn-primary" type="submit">{% icon 'plus' 16 %} Neuer Auftrag</button></form>
+    {% endif %}
+  </div>
+</div>
+
+{% if customer.is_anonymized %}<div class="alert alert-info mb">{% icon 'user-x' %}<div>Dieser Kunde wurde am {{ customer.anonymized_at|d }} anonymisiert.</div></div>{% endif %}
+
+<div class="split">
+  <div class="card">
+    <div class="card-head"><h2>Aufträge</h2><span class="sub">{{ orders|length }}</span></div>
+    {% if orders %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Veranstaltung</th><th class="hide-sm">Datum</th><th>Fortschritt</th><th class="right">Summe</th></tr></thead>
+      <tbody>{% for o in orders %}
+        <tr class="link" data-href="{{ o.get_absolute_url }}">
+          <td><div class="cell-title">{{ o.title }}</div><div class="cell-sub">{{ o.number }}</div></td>
+          <td class="hide-sm">{{ o.event_date|d|default:"—" }}</td>
+          <td>{% include "orders/_status.html" with order=o %}</td>
+          <td class="right num">{{ o.total|euro }}</td>
+        </tr>{% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}
+    <div class="empty"><p>Noch keine Aufträge für diesen Kunden.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Kontakt</h2></div>
+      <div class="card-body stack-sm">
+        {% if customer.email %}<div class="row">{% icon 'mail' 16 'subtle' %}<a href="mailto:{{ customer.email }}">{{ customer.email }}</a></div>{% endif %}
+        {% if customer.phone %}<div class="row">{% icon 'phone' 16 'subtle' %}<a href="tel:{{ customer.phone }}">{{ customer.phone }}</a></div>{% endif %}
+        {% if customer.address_lines %}<div class="row" style="align-items:flex-start">{% icon 'map-pin' 16 'subtle' %}<div>{% for l in customer.address_lines %}{{ l }}<br>{% endfor %}</div></div>{% endif %}
+      </div>
+    </div>
+    {% if customer.notes %}
+    <div class="card"><div class="card-head"><h2>Interne Notizen</h2></div><div class="card-body">{{ customer.notes|nl2br_safe }}</div></div>
+    {% endif %}
+    <div class="card">
+      <div class="card-head"><h2>{% icon 'shield' 16 %} Datenschutz</h2></div>
+      <div class="card-body stack-sm small">
+        <div class="muted">Kunde seit {{ customer.created_at|d }}.
+          {% if retention_until %}Gesetzliche Aufbewahrungspflicht bis {{ retention_until|d }}.{% else %}Keine Aufbewahrungsfristen.{% endif %}</div>
+        <div class="row wrap">
+          <a class="btn btn-sm" href="{% url 'customers:export' customer.pk %}">{% icon 'download' 14 %} Datenauskunft</a>
+          {% if can_delete %}
+          <form method="post" action="{% url 'customers:delete' customer.pk %}" data-confirm="Kunde {{ customer.full_name }} endgültig löschen?">{% csrf_token %}<button class="btn btn-sm btn-danger">{% icon 'trash-2' 14 %} Löschen</button></form>
+          {% elif request.user.is_admin and not customer.is_anonymized %}
+          <form method="post" action="{% url 'customers:anonymize' customer.pk %}" data-confirm="Alle personenbezogenen Daten dieses Kunden unwiderruflich entfernen?">{% csrf_token %}<button class="btn btn-sm btn-danger">{% icon 'user-x' 14 %} Anonymisieren</button></form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Packliste</td><td>{{ d.number }}{% if d.version > 1 %} (V{{ d.version }}){% endif %}</td></tr>
+<tr><td>Erstellt</td><td>{{ d.date }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Packliste</h1><div class="subtitle">{{ d.order.event }} · {{ d.total_pieces }} Teile</div></div>
+{% include "pdf/_event.html" %}
+<table class="items">
+  <thead><tr><th style="width:8mm"></th><th style="width:14mm"></th><th>Artikel</th><th>Lagerort</th><th class="qty">Menge</th><th style="width:16mm" class="right">Gepackt</th></tr></thead>
+  <tbody>
+  {% for g in d.groups %}
+    <tr class="cat-head"><td colspan="6">{{ g.name }}</td></tr>
+    {% for i in g.items %}
+    <tr>
+      <td><span class="checkbox"></span></td>
+      <td>{% if i.image %}<img class="thumb" src="{{ i.image|fileuri }}" alt="">{% endif %}</td>
+      <td><strong>{{ i.name }}</strong><div class="small muted">{{ i.number }}</div></td>
+      <td>{{ i.location }}</td>
+      <td class="qty strong" style="font-size:11pt">{{ i.quantity }}</td>
+      <td class="right">____</td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
+{% if d.packages %}
+<h2>Enthaltene Pakete</h2>
+<ul class="small">{% for p in d.packages %}<li><strong>{{ p.quantity }}× {{ p.name }}:</strong> {{ p.contents|join:", " }}</li>{% endfor %}</ul>
+{% endif %}
+{% if d.order.customer_note %}<div class="note-box">{{ d.order.customer_note|linebreaksbr }}</div>{% endif %}
+<div class="signatures">
+  <div class="sigbox"><div class="space"></div><div class="line">Gepackt von / Datum</div></div>
+  <div class="sigbox"><div class="space"></div><div class="line">Kontrolliert von</div></div>
+</div>
+{% endblock %}

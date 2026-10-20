@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{% if customer %}{{ customer.full_name }} bearbeiten{% else %}Neuer Kunde{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{% url 'customers:list' %}">Kunden</a> {% icon 'chevron-right' 12 %}</div><h1>{% if customer %}{{ customer.full_name }} bearbeiten{% else %}Neuer Kunde{% endif %}</h1></div>
+</div>
+<form method="post" class="card" style="max-width:820px" novalidate data-guard>
+  {% csrf_token %}
+  {% include "customers/_fields.html" %}
+  <div class="card-foot">
+    <a class="btn btn-ghost" href="{% if customer %}{{ customer.get_absolute_url }}{% else %}{% url 'customers:list' %}{% endif %}">Abbrechen</a>
+    <button class="btn btn-primary" type="submit">Speichern</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{% if article %}{{ article.name }} bearbeiten{% else %}Neuer Artikel{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{% url 'catalog:article_list' %}">Artikel</a> {% icon 'chevron-right' 12 %}</div>
+    <h1>{% if article %}{{ article.name }} bearbeiten{% else %}Neuer Artikel{% endif %}</h1></div>
+</div>
+<form method="post" enctype="multipart/form-data" class="card" style="max-width:920px" novalidate data-guard>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-section-title">Beschreibung</div>
+    <div class="form-grid">
+      {% field form.name "col-4" %}
+      {% field form.category "col-2" %}
+      {% field form.description "col-6" "Erscheint im Angebot unter der Bezeichnung (optional)." %}
+      {% field form.storage_location "col-2" %}
+      {% if form.initial_stock %}{% field form.initial_stock "col-2" %}{% endif %}
+      <div class="col-2" style="align-self:end">{% field form.active %}</div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Foto</div>
+    <div class="row wrap" style="gap:20px">
+      {% if article.image %}<img src="{{ article.image.url }}" alt="" class="thumb" style="width:96px;height:96px">{% endif %}
+      <div class="field">{{ form.image }}{% for e in form.image.errors %}<div class="error">{{ e }}</div>{% endfor %}
+        <div class="hint">Wird automatisch verkleinert; Standortdaten werden entfernt.</div></div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Preise</div>
+    <div class="form-section-desc">Alle Preise sind Endpreise inklusive Umsatzsteuer.</div>
+    <div class="form-grid">
+      <div class="col-2">{% field form.price %}</div>
+      <div class="col-2">{% field form.extra_day_price %}</div>
+      <div class="col-2">{% field form.vat_rate %}</div>
+      <div class="col-2">{% field form.deposit_per_unit "" "Vorschlag für die Kaution im Auftrag" %}</div>
+      <div class="col-2">{% field form.replacement_value "" "Grundlage für Schadens- und Verlustberechnung" %}</div>
+    </div>
+  </div>
+  <div class="card-foot">
+    <a class="btn btn-ghost" href="{% if article %}{{ article.get_absolute_url }}{% else %}{% url 'catalog:article_list' %}{% endif %}">Abbrechen</a>
+    {% if not article %}<button class="btn" type="submit" name="weiterer" value="1">Speichern & weiteren anlegen</button>{% endif %}
+    <button class="btn btn-primary" type="submit">Speichern</button>
+  </div>
+</form>
+{% endblock %}

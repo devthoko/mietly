@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Aufträge{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Vermietung</div><h1>Aufträge</h1></div>
+  <div class="page-actions desktop-only"><a class="btn btn-primary" href="{% url 'orders:create' %}">{% icon 'plus' 16 %} Neuer Auftrag</a></div>
+</div>
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="tabs">
+      {% for t in tabs %}<a href="{% query status=t.key seite='' schritt='' %}" class="{% if tab == t.key %}active{% endif %}">{{ t.label }}<span class="count">{{ t.count }}</span></a>{% endfor %}
+    </div>
+    <input type="hidden" name="status" value="{{ tab }}">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Veranstaltung, Kunde, Ort, Nummer …"></div>
+    {% if tab == "aktiv" %}
+    <select class="input" name="schritt" style="width:auto" data-autosubmit-select>
+      <option value="">Alle Schritte</option>
+      {% for n, key, title in steps %}<option value="{{ n }}" {% if stage == n|stringformat:"s" %}selected{% endif %}>{{ n }}. {{ title }}</option>{% endfor %}
+    </select>
+    {% endif %}
+  </form>
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Veranstaltung</th><th>Kunde</th><th class="hide-sm">Termin</th><th>Fortschritt</th><th class="right hide-sm">Summe</th></tr></thead>
+    <tbody>
+    {% for o in page %}
+      <tr class="link" data-href="{{ o.get_absolute_url }}">
+        <td><div class="cell-title">{{ o.title }}</div><div class="cell-sub">{{ o.number }}{% if o.event_location %} · {{ o.event_location }}{% endif %}</div></td>
+        <td>{{ o.customer|default:"—" }}</td>
+        <td class="nowrap">{% if o.event_date %}{{ o.event_date|dlong }}<div class="cell-sub">{{ o.event_date|relday }}</div>{% else %}<span class="subtle">offen</span>{% endif %}</td>
+        <td>{% include "orders/_status.html" with order=o %}</td>
+        <td class="right num hide-sm">{{ o.total|euro }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'clipboard-list' 22 %}</div>
+    <h3>{% if q %}Keine passenden Aufträge{% else %}Keine Aufträge in dieser Ansicht{% endif %}</h3>
+    <p>Ein Auftrag führt Sie Schritt für Schritt vom Angebot bis zur Rückgabe der Kaution.</p>
+    <a class="btn btn-primary" href="{% url 'orders:create' %}">Neuen Auftrag anlegen</a></div>
+  {% endif %}
+</div>
+{% endblock %}

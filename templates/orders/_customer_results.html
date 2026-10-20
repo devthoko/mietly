@@ -1,0 +1,14 @@
+<div class="doc-list">
+{% for c in customers %}
+  <form method="post" action="{% if order %}{% url 'orders:set_customer' order.pk %}{% else %}{% url 'orders:create' %}{% endif %}" class="doc-item">
+    {% csrf_token %}
+    <input type="hidden" name="{% if order %}customer{% else %}kunde{% endif %}" value="{{ c.pk }}">
+    <span class="avatar">{{ c.full_name|initials }}</span>
+    <span style="flex:1;min-width:0"><span class="strong">{{ c.full_name }}</span>
+      <span class="doc-meta" style="display:block">{{ c.number }}{% if c.city %} · {{ c.city }}{% endif %}{% if c.email %} · {{ c.email }}{% endif %}</span></span>
+    <button class="btn btn-sm{% if order and order.customer_id == c.pk %} btn-primary{% endif %}" type="submit">{% if order and order.customer_id == c.pk %}Gewählt{% else %}Auswählen{% endif %}</button>
+  </form>
+{% empty %}
+  <div class="empty" style="padding:28px"><p>{% if q %}Kein Kunde gefunden für „{{ q }}“.{% else %}Noch keine Kunden vorhanden.{% endif %}</p></div>
+{% endfor %}
+</div>

@@ -1,0 +1,18 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Angebotsnummer</td><td>{{ d.number }}{% if d.version > 1 %} (V{{ d.version }}){% endif %}</td></tr>
+<tr><td>Datum</td><td>{{ d.date }}</td></tr>
+<tr><td>Gültig bis</td><td>{{ d.valid_until }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Angebot</h1><div class="subtitle">{{ d.order.event }}</div></div>
+{{ d.intro|safe }}
+{% include "pdf/_event.html" %}
+{% include "pdf/_items.html" with show_discount=True %}
+{% if d.order.deposit %}<div class="note-box keep"><strong>Kaution:</strong> {{ d.order.deposit }} – wird nach ordnungsgemäßer Rückgabe erstattet.</div>{% endif %}
+{% if d.order.customer_note %}<div class="note-box keep">{{ d.order.customer_note|linebreaksbr }}</div>{% endif %}
+{% if d.company.small_business %}<p class="small muted">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>{% endif %}
+<div class="mt">{{ d.outro|safe }}</div>
+<div class="legal">{{ d.terms|safe }}</div>
+{% include "pdf/_signature.html" with label=d.signature_label %}
+{% endblock %}

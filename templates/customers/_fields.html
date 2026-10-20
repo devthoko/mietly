@@ -1,0 +1,22 @@
+<div class="form-section">
+  <div class="form-section-title">Person</div>
+  <div class="form-grid">
+    {% field form.salutation "col-1" %}
+    {% field form.first_name "col-2" %}
+    {% field form.last_name "col-3" %}
+    {% field form.email "col-3" %}
+    {% field form.phone "col-3" %}
+  </div>
+</div>
+<div class="form-section">
+  <div class="form-section-title">Anschrift</div>
+  <div class="form-section-desc">Wird für Angebot, Vertrag und Rechnung benötigt.</div>
+  <div class="form-grid">
+    {% field form.street "col-6" %}
+    {% field form.zip_code "col-2" %}
+    {% field form.city "col-4" %}
+  </div>
+</div>
+<div class="form-section">
+  <div class="form-grid">{% field form.notes "col-6" "Nur intern sichtbar, erscheint auf keinem Dokument." %}</div>
+</div>

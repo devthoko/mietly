@@ -1,0 +1,100 @@
+<div class="card">
+  <div class="card-head"><h2>{% icon 'receipt-text' 18 %} Rechnung</h2>
+    {% if order.is_active and not step.locked and not main_invoice %}
+    <form method="post" action="{% url 'orders:issue_invoice' order.pk %}" data-confirm="Rechnung jetzt verbindlich ausstellen? Sie erhält eine fortlaufende Nummer und kann danach nur noch storniert werden.">{% csrf_token %}
+      <button class="btn btn-primary" type="submit">{% icon 'receipt-text' 16 %} Rechnung erstellen</button></form>
+    {% endif %}
+  </div>
+  {% if invoices %}
+  <div class="doc-list">
+    {% for inv in invoices %}
+    <div class="doc-item" style="padding:14px 20px">
+      <span class="doc-icon">{% icon 'receipt-text' 18 %}</span>
+      <div style="flex:1;min-width:0">
+        <div class="row wrap" style="gap:8px"><span class="strong">{{ inv.get_kind_display }} {{ inv.number }}</span>
+          {% if inv.is_cancelled %}{% status_badge "storniert" "danger" %}{% elif inv.kind == "cancellation" %}{% status_badge "Storno zu "|add:inv.cancels.number "neutral" %}{% endif %}</div>
+        <div class="doc-meta">{{ inv.issue_date|d }} · fällig {{ inv.due_date|d }} · Leistungszeitraum {{ inv.service_period }}</div>
+      </div>
+      <span class="num strong">{{ inv.total_gross|euro }}</span>
+      {% if inv.document %}<a class="btn btn-sm" href="{% url 'documents:download' inv.document.pk %}" target="_blank">{% icon 'eye' 14 %}</a>
+      <a class="btn btn-sm" href="{% url 'documents:email' inv.document.pk %}" title="Per E-Mail senden">{% icon 'mail' 14 %}</a>
+      {% include "documents/_print_button.html" with doc=inv.document icon_only=True %}{% endif %}
+      {% if inv.is_active and order.is_active %}
+      <button class="btn btn-sm btn-ghost btn-danger" type="button" data-open-modal="dlg-storno-{{ inv.pk }}" title="Stornieren">{% icon 'undo-2' 14 %}</button>
+      <dialog class="modal" id="dlg-storno-{{ inv.pk }}">
+        <form method="post" action="{% url 'orders:cancel_invoice' order.pk inv.pk %}">{% csrf_token %}
+          <div class="modal-head"><h2>Rechnung {{ inv.number }} stornieren</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+          <div class="modal-body stack">
+            <p class="small muted">Rechnungen dürfen nicht geändert oder gelöscht werden. Es wird eine Stornorechnung mit eigener Nummer erstellt, die den Betrag vollständig ausgleicht. Bereits erfasste Zahlungen bleiben dem Auftrag zugeordnet und werden auf eine neue Rechnung angerechnet.</p>
+            <div class="field"><label>Grund<span class="req">*</span></label><input class="input" name="reason" required maxlength="300" placeholder="z. B. Positionen geändert"></div>
+          </div>
+          <div class="modal-foot"><button class="btn" type="button" data-close-modal>Abbrechen</button><button class="btn btn-primary" type="submit">Stornorechnung erstellen</button></div>
+        </form>
+      </dialog>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% elif not step.locked %}
+  <div class="card-body small muted">Die Rechnung übernimmt alle Positionen aus Angebot und Vertrag, erhält eine fortlaufende Rechnungsnummer und enthält alle Pflichtangaben nach § 14 UStG. <strong>Die Übergabe ist erst nach vollständiger Bezahlung möglich.</strong></div>
+  {% endif %}
+</div>
+
+{% if main_invoice or payments %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'banknote' 18 %} Zahlungseingänge</h2>
+    <span class="sub">bezahlt {{ paid_total|euro }} von {{ invoiced_total|euro }}</span></div>
+  {% if invoiced_total %}
+  <div class="card-body" style="padding-bottom:0">
+    {% widthratio paid_total invoiced_total 100 as pct %}
+    <div class="progress"><span style="width:{% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%"></span></div>
+  </div>
+  {% endif %}
+  {% if payments %}
+  <div class="table-wrap mt-sm"><table class="table compact">
+    <thead><tr><th>Datum</th><th>Art</th><th>Referenz</th><th class="right">Betrag</th><th></th></tr></thead>
+    <tbody>{% for p in payments %}
+      <tr><td>{{ p.paid_on|d }}</td><td>{{ p.get_method_display }}</td><td>{{ p.reference }}{% if p.note %}<div class="cell-sub">{{ p.note }}</div>{% endif %}</td>
+        <td class="right num {% if p.is_refund %}danger-text{% endif %}">{{ p.amount|euro }}</td>
+        <td class="right">{% if not order.handover.is_completed and order.is_active %}
+          <form method="post" action="{% url 'orders:delete_payment' order.pk p.pk %}" class="js-reason-form" data-confirm="Zahlung über {{ p.amount|euro }} löschen?">{% csrf_token %}
+            <input type="hidden" name="reason" value="Fehlerhafte Erfassung"><button class="btn btn-ghost btn-icon btn-sm" title="Löschen">{% icon 'trash-2' 14 %}</button></form>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+  {% if order.is_active and open_balance > 0 %}
+  <form method="post" action="{% url 'orders:add_payment' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap" novalidate>
+    {% csrf_token %}
+    <div class="field" style="width:130px"><label>Betrag</label><div class="input-suffix">{{ payment_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ payment_form.paid_on }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ payment_form.method }}</div>
+    <div class="field" style="flex:1;min-width:140px"><label>Referenz</label>{{ payment_form.reference }}</div>
+    <button class="btn btn-primary" type="submit">{% icon 'plus' 16 %} Zahlung erfassen</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if deposit.required %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'piggy-bank' 18 %} Kaution</h2><span class="sub">vereinbart {{ deposit.agreed|euro }} · erhalten {{ deposit.received|euro }}</span></div>
+  {% if deposit_transactions %}
+  <div class="table-wrap"><table class="table compact">
+    <tbody>{% for t in deposit_transactions %}<tr><td>{{ t.date|d }}</td><td>{{ t.get_kind_display }}</td><td>{{ t.get_method_display }}</td><td class="small subtle">{{ t.reason }}</td><td class="right num">{{ t.amount|euro }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+  {% if order.is_active and deposit.outstanding > 0 and not order.return_record.is_completed %}
+  <form method="post" action="{% url 'orders:add_deposit' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap" novalidate>
+    {% csrf_token %}
+    <div class="field" style="width:130px"><label>Betrag</label><div class="input-suffix">{{ deposit_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ deposit_form.date }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ deposit_form.method }}</div>
+    <div class="field" style="flex:1;min-width:140px"><label>Notiz</label>{{ deposit_form.reason }}</div>
+    <button class="btn" type="submit">{% icon 'plus' 16 %} Kaution erfassen</button>
+  </form>
+  {% endif %}
+  {% if company.deposit_required_before_handover and deposit.outstanding > 0 %}
+  <div class="card-body small subtle" style="padding-top:8px">Die Kaution muss laut Ihren Geschäftsregeln vor der Übergabe vollständig eingegangen sein.</div>
+  {% endif %}
+</div>
+{% endif %}

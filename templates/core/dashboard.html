@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Übersicht{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">{{ today|dlong }}</div>
+    <h1>Guten {% now "H" as hour %}{% if hour < "11" %}Morgen{% elif hour < "18" %}Tag{% else %}Abend{% endif %}, {{ request.user.first_name|default:request.user.username }}</h1>
+  </div>
+  <div class="page-actions desktop-only">
+    <a class="btn" href="{% url 'core:calendar' %}">{% icon 'calendar-days' 16 %} Kalender</a>
+    <a class="btn btn-primary" href="{% url 'orders:create' %}">{% icon 'plus' 16 %} Neuer Auftrag</a>
+  </div>
+</div>
+
+{% if setup_missing %}
+<div class="card warn mb">
+  <div class="card-body row wrap" style="gap:12px">
+    <span class="doc-icon" style="background:var(--warning-soft);color:var(--warning)">{% icon 'sparkles' 18 %}</span>
+    <div style="flex:1 1 300px"><div class="strong">Einrichtung vervollständigen</div>
+      <div class="small muted">Damit Angebote, Verträge und Rechnungen vollständig sind, fehlen noch: {% for label, url in setup_missing %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.</div></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid grid-4 mb">
+  <a class="card kpi" href="{% url 'orders:list' %}" style="color:inherit;text-decoration:none">
+    <div class="kpi-label">{% icon 'clipboard-list' 15 %} Laufende Aufträge</div>
+    <div class="kpi-value">{{ kpi_active }}</div><div class="kpi-sub">{% if attention_count %}{{ attention_count }} warten auf Sie{% else %}alles im Plan{% endif %}</div>
+  </a>
+  <a class="card kpi" href="{% url 'core:calendar' %}" style="color:inherit;text-decoration:none">
+    <div class="kpi-label">{% icon 'party-popper' 15 %} Feiern in den nächsten 30 Tagen</div>
+    <div class="kpi-value">{{ kpi_upcoming }}</div><div class="kpi-sub">bestätigt und angefragt</div>
+  </a>
+  <a class="card kpi" href="{% url 'billing:list' %}?status=offen" style="color:inherit;text-decoration:none">
+    <div class="kpi-label">{% icon 'receipt-text' 15 %} Noch zu bezahlen</div>
+    <div class="kpi-value">{{ kpi_receivables|euro }}</div><div class="kpi-sub">aus gestellten Rechnungen</div>
+  </a>
+  <div class="card kpi">
+    <div class="kpi-label">{% icon 'piggy-bank' 15 %} Kautionen in Verwahrung</div>
+    <div class="kpi-value">{{ kpi_deposits|euro }}</div><div class="kpi-sub">werden nach Rückgabe erstattet</div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>{% icon 'list-checks' 18 %} Was als Nächstes ansteht</h2><span class="sub">{% if attention_count == 1 %}1 Aufgabe{% else %}{{ attention_count }} Aufgaben{% endif %}</span></div>
+      {% if attention_count %}
+      <div class="doc-list">
+        {% for o in attention.overdue %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}?schritt=return" style="color:inherit;text-decoration:none">
+          <span class="doc-icon" style="background:var(--danger-soft);color:var(--danger)">{% icon 'alarm-clock' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">Rückgabe überfällig</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }} · fällig {{ o.return_at|relday }}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+        {% for o in attention.handover %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}?schritt=handover" style="color:inherit;text-decoration:none">
+          <span class="doc-icon" style="background:var(--info-soft);color:var(--info)">{% icon 'package-check' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">Bereit zur Übergabe</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }} · {{ o.handover_at|dtlong }}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+        {% for o, doc in attention.sign %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}" style="color:inherit;text-decoration:none">
+          <span class="doc-icon">{% icon 'signature' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">{{ doc.get_kind_display }} wartet auf Unterschrift</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }} · {{ doc.number }}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+        {% for o, bal in attention.unpaid %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}?schritt=invoice" style="color:inherit;text-decoration:none">
+          <span class="doc-icon" style="background:var(--warning-soft);color:var(--warning)">{% icon 'banknote' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">Zahlung offen: {{ bal|euro }}</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }}{% if o.handover_at %} · Übergabe {{ o.handover_at|relday }}{% endif %}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+        {% for o, issue in attention.money %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}?schritt=close" style="color:inherit;text-decoration:none">
+          <span class="doc-icon" style="background:var(--warning-soft);color:var(--warning)">{% icon 'banknote' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">{{ issue.title }}</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }} · {{ o.get_status_display }}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+        {% for o, label in attention.close %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}?schritt=close" style="color:inherit;text-decoration:none">
+          <span class="doc-icon" style="background:var(--success-soft);color:var(--success)">{% icon 'circle-check-big' 18 %}</span>
+          <span style="flex:1;min-width:0"><span class="strong">{{ label }}</span><span class="doc-meta" style="display:block">{{ o.title }} · {{ o.customer }}</span></span>
+          {% icon 'chevron-right' 16 'subtle' %}</a>
+        {% endfor %}
+      </div>
+      {% if attention_hidden %}<div class="card-foot" style="justify-content:flex-start"><a class="small" href="{% url 'orders:list' %}">… und {{ attention_hidden }} weitere – alle Aufträge ansehen</a></div>{% endif %}
+      {% else %}
+      <div class="empty"><div class="empty-icon">{% icon 'coffee' 22 %}</div><h3>Alles erledigt</h3><p>Aktuell wartet nichts auf Sie.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>{% icon 'truck' 18 %} Übergaben & Rückgaben</h2><span class="sub">nächste 7 Tage</span></div>
+      {% if agenda %}
+      {% for a in agenda %}
+      <a class="agenda-item" href="{{ a.order.get_absolute_url }}?schritt={% if a.kind == 'out' %}handover{% else %}return{% endif %}">
+        <div class="agenda-date"><div class="dd">{{ a.when|date:"d" }}</div><div class="mm">{{ a.when|date:"M" }}</div></div>
+        <span class="agenda-kind {{ a.kind }}">{% if a.kind == 'out' %}{% icon 'arrow-up-right' 16 %}{% else %}{% icon 'arrow-down-left' 16 %}{% endif %}</span>
+        <div style="flex:1;min-width:0"><div class="strong">{% if a.kind == 'out' %}Übergabe{% else %}Rückgabe{% endif %} · {{ a.when|date:"H:i" }} Uhr</div>
+          <div class="small subtle">{{ a.order.title }} · {{ a.order.customer }} · {{ a.order.get_fulfillment_display }}</div></div>
+        {% if a.overdue %}{% status_badge "überfällig" "danger" %}{% else %}<span class="small subtle">{{ a.when|relday }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      {% else %}
+      <div class="empty"><p>In den nächsten 7 Tagen stehen keine Übergaben oder Rückgaben an.</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>{% icon 'party-popper' 18 %} Die nächsten Feiern</h2></div>
+      {% if upcoming %}
+      <div class="doc-list">{% for o in upcoming %}
+        <a class="doc-item" href="{{ o.get_absolute_url }}" style="color:inherit;text-decoration:none">
+          <div class="agenda-date"><div class="dd">{{ o.event_date|date:"d" }}</div><div class="mm">{{ o.event_date|date:"M" }}</div></div>
+          <span style="flex:1;min-width:0"><span class="strong">{{ o.title }}</span><span class="doc-meta" style="display:block">{{ o.customer }}</span>
+          <span class="mini-steps" style="margin-top:6px">{% for i in "123456789" %}<span class="{% if forloop.counter < o.stage %}done{% elif forloop.counter == o.stage %}current{% endif %}"></span>{% endfor %}</span></span>
+        </a>{% endfor %}</div>
+      {% else %}<div class="empty"><p>Keine Events in den nächsten 30 Tagen.</p></div>{% endif %}
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>{% icon 'history' 18 %} Zuletzt passiert</h2></div>
+      <div class="card-body">
+        <ul class="timeline">{% for a in activity %}
+          <li><span class="dot"></span><div><div>{{ a.message }}{% if a.order %} · <a href="{{ a.order.get_absolute_url }}">{{ a.order.number }}</a>{% endif %}</div><div class="when">{{ a.created_at|dt }} · {{ a.user.display_name|default:"System" }}</div></div></li>
+        {% empty %}<li class="subtle">Noch keine Aktivitäten.</li>{% endfor %}</ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Dokumente{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Verwaltung</div><h1>Dokumentenarchiv</h1></div></div>
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Nummer, Auftrag, Kunde, Unterzeichner …"></div>
+    <select class="input" name="art" style="width:auto" data-autosubmit-select>
+      <option value="">Alle Dokumentarten</option>
+      {% for v, l in kinds %}<option value="{{ v }}" {% if kind == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </form>
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Dokument</th><th>Auftrag</th><th class="hide-sm">Erstellt</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for d in page %}
+      <tr>
+        <td><div class="cell-title">{{ d.display_name }}</div><div class="cell-sub">{{ d.order.title }}</div></td>
+        <td><a href="{{ d.order.get_absolute_url }}">{{ d.order.number }}</a><div class="cell-sub">{{ d.order.customer }}</div></td>
+        <td class="hide-sm nowrap">{{ d.created_at|dt }}<div class="cell-sub">{{ d.created_by.display_name }}</div></td>
+        <td>{% if d.is_signed %}{% status_badge "Unterschrieben" "success" %}<div class="cell-sub">{{ d.signer_name }}, {{ d.signed_at|d }}</div>
+            {% elif d.status == "superseded" %}{% status_badge "Ersetzt" %}{% elif d.status == "void" %}{% status_badge "Storniert" "danger" %}
+            {% elif d.requires_signature %}{% status_badge "Unterschrift fehlt" "warning" %}{% else %}{% status_badge "Erstellt" "info" %}{% endif %}</td>
+        <td class="right nowrap"><a class="btn btn-sm" href="{% url 'documents:download' d.pk %}" target="_blank">{% icon 'eye' 14 %}</a>
+          <a class="btn btn-sm" href="{% url 'documents:download' d.pk %}?download=1">{% icon 'download' 14 %}</a>
+          {% include "documents/_print_button.html" with doc=d icon_only=True %}</td>
+      </tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'files' 22 %}</div><h3>Keine Dokumente</h3><p>Angebote, Verträge, Rechnungen und Protokolle erscheinen hier automatisch und werden sicher aufbewahrt.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

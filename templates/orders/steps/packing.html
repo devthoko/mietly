@@ -1,0 +1,21 @@
+<div class="card">
+  <div class="card-head"><h2>{% icon 'list-checks' 18 %} Packliste</h2>
+    {% if order.is_active and quantities and not order.handover.is_completed %}
+    <form method="post" action="{% url 'orders:create_packing_list' order.pk %}">{% csrf_token %}
+      <button class="btn {% if packing %}btn-sm{% else %}btn-primary{% endif %}" type="submit">{% if packing %}{% icon 'refresh-cw' 14 %} Aktualisieren{% else %}{% icon 'file-plus' 16 %} Packliste erstellen{% endif %}</button></form>
+    {% endif %}
+  </div>
+  {% if packing %}{% include "orders/_doc_card.html" with doc=packing %}{% endif %}
+  {% if quantities %}
+  <div class="table-wrap"><table class="table compact">
+    <thead><tr><th>Artikel</th><th class="hide-sm">Kategorie</th><th>Lagerort</th><th class="right">Menge</th></tr></thead>
+    <tbody>{% for article, qty in quantities %}
+      <tr><td><div class="row">{% if article.image %}<img class="thumb" src="{{ article.image.url }}" alt="">{% else %}<span class="thumb">{% icon 'image' 14 %}</span>{% endif %}<div><div class="cell-title">{{ article.name }}</div><div class="cell-sub">{{ article.number }}</div></div></div></td>
+      <td class="hide-sm">{{ article.category|default:"—" }}</td><td>{{ article.storage_location|default:"—" }}</td><td class="right num strong">{{ qty }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}
+  <div class="empty"><p>Der Auftrag enthält noch keine Artikel.</p></div>
+  {% endif %}
+  <div class="card-foot" style="justify-content:flex-start"><span class="small subtle">{% icon 'info' 14 %} Die Packliste darf schon vor der Bezahlung erstellt werden. Pakete sind in ihre einzelnen Artikel aufgelöst.</span></div>
+</div>

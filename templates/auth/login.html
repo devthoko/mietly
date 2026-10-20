@@ -1,0 +1,41 @@
+{% load static %}<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anmelden · mietly</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <script src="{% static 'js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v={{ ASSET_VERSION }}">
+</head>
+<body>
+<div class="auth">
+  <div class="auth-side">
+    <div class="row" style="gap:10px">
+      <span class="brand-mark">m</span>
+      <span class="brand-name" style="color:#fff">mietly</span>
+    </div>
+    <div>
+      <h2>Vom ersten Angebot bis zur zurückgezahlten Kaution.</h2>
+      <p class="mt">Kunden, Mietartikel, Verträge, Rechnungen, Übergaben und Rücknahmen – an einem Ort, übersichtlich und zuverlässig.</p>
+    </div>
+    <div></div>
+  </div>
+  <div class="auth-main">
+    <div class="auth-card">
+      <h1>Willkommen zurück</h1>
+      <p class="muted mb">Bitte melden Sie sich mit Ihrem Benutzerkonto an.</p>
+      {% for message in messages %}<div class="alert alert-info mb">{% icon 'info' %}<div>{{ message }}</div></div>{% endfor %}
+      {% if error %}<div class="alert alert-danger mb">{% icon 'circle-alert' %}<div>{{ error }}</div></div>{% endif %}
+      <form method="post" class="stack" novalidate>
+        {% csrf_token %}
+        {% field form.username %}
+        {% field form.password %}
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Anmelden</button>
+      </form>
+      <p class="small subtle mt">Passwort vergessen? Ein Administrator kann es unter Einstellungen → Benutzer neu setzen.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}{{ tpl.get_key_display }}{% endblock %}
+{% block settings_actions %}<a class="btn" href="{% url 'core:settings_templates' %}">{% icon 'arrow-left' 16 %} Alle Vorlagen</a>{% endblock %}
+{% block settings_content %}
+<div class="split">
+  <form method="post" class="card" novalidate data-guard>
+    {% csrf_token %}
+    <div class="card-head"><h2>Text bearbeiten</h2><span class="sub">aktuell Version {{ tpl.version }}</span></div>
+    <div class="card-body stack">
+      {% for e in form.non_field_errors %}<div class="alert alert-danger">{% icon 'circle-alert' %}<div>{{ e }}</div></div>{% endfor %}
+      {% if form.subject %}{% field form.subject %}{% endif %}
+      {% field form.body %}
+      <div class="small subtle">Auszeichnung: <code class="mono">## Überschrift</code> · <code class="mono">- Aufzählung</code> · <code class="mono">**fett**</code> · Leerzeile = neuer Absatz</div>
+    </div>
+    {% if request.user.is_admin %}
+    <div class="card-foot">
+      {% if not is_mail %}<button class="btn" type="submit" name="preview" value="1">{% icon 'eye' 16 %} Vorschau</button>{% endif %}
+      <button class="btn btn-primary" type="submit">Als neue Version speichern</button>
+    </div>
+    {% endif %}
+  </form>
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Platzhalter</h2></div>
+      <div class="card-body">
+        <p class="small subtle">Zum Einfügen anklicken. Platzhalter werden beim Erstellen des Dokuments durch die Auftragsdaten ersetzt.</p>
+        <div class="placeholder-list">
+          {% for key, label in placeholders.items %}
+          <code data-insert="{% templatetag openvariable %}{{ key }}{% templatetag closevariable %}" title="Einfügen">{{ key }}</code><span class="subtle">{{ label }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Versionen</h2></div>
+      <div class="doc-list">
+        {% for h in history %}
+        <div class="doc-item">
+          <span class="badge {% if h.version == tpl.version %}badge-accent{% else %}plain{% endif %}">v{{ h.version }}</span>
+          <span style="flex:1" class="small">{{ h.created_at|dt }}<span class="doc-meta" style="display:block">{{ h.created_by.display_name|default:"Standardvorlage" }}</span></span>
+          {% if h.version != tpl.version %}<a class="btn btn-sm btn-ghost" href="?version={{ h.version }}">Laden</a>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% if preview %}
+<div class="card">
+  <div class="card-head"><h2>Vorschau mit Beispieldaten</h2></div>
+  <div class="card-body prose">{{ preview }}</div>
+</div>
+{% endif %}
+{% endblock %}

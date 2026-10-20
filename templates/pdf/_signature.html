@@ -1,0 +1,19 @@
+{# Unterschriftsbereich. Mit sig = digitale Unterschrift, sonst Linien zum händischen Unterschreiben #}
+<div class="signatures">
+  <div class="sigbox">
+    <div class="space">{% if not sig %}&nbsp;{% else %}<span class="small">{{ sig.date|slice:":10" }}</span>{% endif %}</div>
+    <div class="line">Ort, Datum</div>
+  </div>
+  <div class="sigbox">
+    <div class="space">{% if sig %}<img src="{{ sig.image|fileuri }}" alt="Unterschrift">{% endif %}</div>
+    <div class="line">{{ label|default:"Unterschrift" }}{% if sig %} – {{ sig.name }}{% endif %}</div>
+    {% if sig %}<div class="signed-meta">Digital unterschrieben am {{ sig.date }}{% if sig.recorded_by %} · aufgenommen durch {{ sig.recorded_by }}{% endif %}</div>{% endif %}
+  </div>
+</div>
+{% if sig %}
+<div class="verify">
+  <strong>Nachweis der elektronischen Unterschrift (einfache elektronische Signatur)</strong><br>
+  Dieses Dokument ({{ d.title }} {{ d.number }}{% if d.version > 1 %}, Version {{ d.version }}{% endif %}) wurde von {{ sig.name }} am {{ sig.date }} unterschrieben.
+  Prüfsumme (SHA-256) der unterschriebenen Originalfassung:<br><span class="hash">{{ sig.original_sha256 }}</span>
+</div>
+{% endif %}

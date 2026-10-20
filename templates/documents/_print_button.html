@@ -1,0 +1,2 @@
+{# Erwartet: doc; optional icon_only #}
+{% if company.printer_ready and doc.status != "superseded" %}<form method="post" action="{% url 'documents:print' doc.pk %}" class="print-form">{% csrf_token %}{% if not request.htmx %}<input type="hidden" name="next" value="{{ request.get_full_path }}">{% endif %}<button class="btn btn-sm" type="submit" title="Auf {{ company.printer_model|default:'dem Drucker' }} drucken"{% if icon_only %} aria-label="Drucken"{% endif %}>{% icon 'printer' 14 %}{% if not icon_only %} Drucken{% endif %}</button></form>{% endif %}

@@ -1,0 +1,23 @@
+<div class="card" id="vertrag">
+  <div class="card-head"><h2>{% icon 'file-pen-line' 18 %} Mietvertrag</h2>
+    {% if order.is_active and not step.locked and not contract.is_signed and not main_invoice %}
+    <form method="post" action="{% url 'orders:create_contract' order.pk %}">{% csrf_token %}
+      <button class="btn {% if contract %}btn-sm{% else %}btn-primary{% endif %}" type="submit">
+        {% if contract %}{% icon 'refresh-cw' 14 %} Neu erstellen{% else %}{% icon 'file-plus' 16 %} Mietvertrag erstellen{% endif %}</button></form>
+    {% endif %}
+  </div>
+  {% if contract %}
+    {% include "orders/_doc_card.html" with doc=contract %}
+  {% elif not step.locked %}
+  <div class="card-body small muted">
+    Der Mietvertrag wird aus den Auftragsdaten und der <a href="{% url 'core:settings_template_edit' 'contract' %}">Vertragsvorlage</a> erzeugt. Er enthält als Anlagen die Mietgegenstände mit Wiederbeschaffungswerten, die Mietbedingungen und die Widerrufsbelehrung.
+    <strong>Ohne unterschriebenen Mietvertrag kann keine Rechnung erstellt werden.</strong>
+  </div>
+  {% endif %}
+  {% if contract_history|length > 1 %}
+  <div class="card-foot" style="justify-content:flex-start;flex-direction:column;align-items:stretch;gap:4px">
+    <div class="label">Frühere Versionen</div>
+    {% for d in contract_history %}{% if d.pk != contract.pk %}<a class="small" href="{% url 'documents:download' d.pk %}" target="_blank">{{ d.display_name }} · {{ d.created_at|d }} · {{ d.get_status_display }}</a>{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+</div>

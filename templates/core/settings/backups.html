@@ -1,0 +1,33 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Datensicherung{% endblock %}
+{% block settings_actions %}
+<form method="post">{% csrf_token %}<button class="btn btn-primary" type="submit" {% if running %}disabled{% endif %}>{% icon 'database-backup' 16 %} Jetzt sichern</button></form>
+{% endblock %}
+{% block settings_content %}
+{% if running %}<div class="alert alert-info">{% icon 'loader' %}<div>Die Sicherung läuft gerade. Bitte laden Sie die Seite in einigen Sekunden neu.</div></div>{% endif %}
+{% if last_error %}<div class="alert alert-danger">{% icon 'circle-alert' %}<div><strong>Die letzte Sicherung hat nicht geklappt.</strong> {{ last_error }}</div></div>{% endif %}
+<div class="card">
+  <div class="card-head"><h2>Vorhandene Sicherungen</h2></div>
+  {% if backups %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Erstellt</th><th>Anlass</th><th class="right">Größe</th><th></th></tr></thead>
+    <tbody>
+    {% for b in backups %}
+      <tr><td class="nowrap">{{ b.created|dt }}{% if not b.verified %} {% status_badge "unvollständig" "warning" %}{% endif %}</td>
+      <td>{% if not b.reason %}nächtlich{% elif b.reason == "manuell" %}von Hand{% elif "vor-update" in b.reason %}vor einem Update{% elif "vor-wiederherstellung" in b.reason %}vor einer Wiederherstellung{% else %}{{ b.reason }}{% endif %}</td>
+      <td class="right num">{{ b.size|filesizeformat }}</td>
+      <td class="right"><a class="btn btn-sm" href="{% url 'core:backup_download' b.name %}">{% icon 'download' 14 %} Herunterladen</a></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'database-backup' 22 %}</div><h3>Noch keine Sicherung</h3><p>mietly sichert jede Nacht automatisch. Sie können jederzeit auch selbst eine Sicherung anlegen.</p></div>
+  {% endif %}
+</div>
+<div class="card card-body stack-sm">
+  <h2>So sind Ihre Daten geschützt</h2>
+  <p class="muted" style="margin:0">Jede Sicherung enthält alle Kunden, Aufträge, Dokumente, Unterschriften und Fotos. mietly sichert jede Nacht und vor jedem Update automatisch und hebt die Sicherungen der letzten Wochen und Monate auf.</p>
+  <p class="muted" style="margin:0"><strong>Unser Tipp:</strong> Laden Sie ab und zu eine Sicherung herunter und bewahren Sie sie an einem anderen Ort auf – oder richten Sie die <a href="{% url 'core:settings_webdav' %}">Cloud-Ablage</a> ein. So sind Ihre Daten auch dann sicher, wenn der Server einmal ausfällt.</p>
+  <p class="muted small" style="margin:0">Die Sicherungsdateien enthalten vertrauliche Daten – bitte sorgsam aufbewahren. Das Zurückspielen einer Sicherung ist in der Anleitung (README) beschrieben.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+<div class="card" id="items-card">
+  <div class="card-head">
+    <h2>{% icon 'shopping-bag' 18 %} Mietgegenstände</h2>
+    {% if items_editable %}
+    <div class="row">
+      <form method="post" action="{% url 'orders:reprice' order.pk %}" title="Preise anhand der aktuellen Mietdauer und Artikelpreise neu berechnen">{% csrf_token %}<button class="btn btn-sm btn-ghost">{% icon 'refresh-cw' 14 %} Preise aktualisieren</button></form>
+      <button class="btn btn-sm" type="button" data-open-modal="dlg-custom">{% icon 'plus' 14 %} Eigene Position</button>
+    </div>
+    {% endif %}
+  </div>
+  {% if items_editable %}
+  <div class="card-body" style="border-bottom:1px solid var(--border)">
+    <div class="item-picker">
+      <div class="input-group">{% icon 'search' 16 %}
+        <input class="input" type="search" name="q" placeholder="Artikel oder Paket suchen und hinzufügen …" autocomplete="off"
+               hx-get="{% url 'orders:item_search' order.pk %}" hx-trigger="input delay:150ms, focus" hx-sync="this:replace" hx-target="#picker-results"></div>
+      <div class="picker-results" id="picker-results"></div>
+    </div>
+  </div>
+  {% endif %}
+  <div id="items">{% include "orders/_items.html" %}</div>
+</div>
+
+{% include "orders/_offer_card.html" %}
+
+{% if items_editable %}
+<dialog class="modal" id="dlg-custom">
+  <form hx-post="{% url 'orders:item_custom' order.pk %}" hx-target="#items" hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="modal-head"><h2>Eigene Position</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+    <div class="modal-body"><div class="form-grid">
+      {% field custom_form.description "col-6" %}
+      {% field custom_form.detail "col-6" %}
+      {% field custom_form.quantity "col-2" %}
+      {% field custom_form.unit_price "col-2" %}
+      {% field custom_form.vat_rate "col-2" %}
+    </div><p class="hint mt-sm">z. B. Lieferpauschale, Aufbauservice, Sonderreinigung oder ein Rabatt als eigene Position.</p></div>
+    <div class="modal-foot"><button class="btn" type="button" data-close-modal>Abbrechen</button><button class="btn btn-primary" type="submit">Hinzufügen</button></div>
+  </form>
+</dialog>
+{% endif %}

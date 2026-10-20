@@ -1,0 +1,10 @@
+{% if order.status == "cancelled" %}{% status_badge "Storniert" "danger" %}
+{% elif order.status == "completed" %}{% status_badge "Abgeschlossen" "success" %}
+{% else %}
+<div class="stack-sm" style="gap:4px">
+  <span class="mini-steps" title="Schritt {{ order.stage }} von 9: {{ order.stage_title }}">{% for i in "123456789" %}<span class="{% if forloop.counter < order.stage %}done{% elif forloop.counter == order.stage %}current{% endif %}"></span>{% endfor %}</span>
+  {% if order.return_overdue %}<span class="status-text tone-danger">Rückgabe überfällig</span>
+  {% elif order.next_action %}<span class="status-text tone-{{ order.next_tone|default:'neutral' }}">{{ order.next_action }}</span>
+  {% else %}<span class="tiny subtle">{{ order.stage_title }}</span>{% endif %}
+</div>
+{% endif %}

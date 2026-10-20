@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Mein Profil{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Konto</div><h1>Mein Profil</h1></div></div>
+<div class="grid grid-2" style="align-items:start">
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}
+    <div class="card-head"><h2>Persönliche Daten</h2><span class="sub">{{ request.user.username }} · {{ request.user.get_role_display }}</span></div>
+    <div class="card-body"><div class="form-grid">
+      {% field form.first_name "col-3" %}{% field form.last_name "col-3" %}{% field form.email "col-6" %}
+    </div></div>
+    <div class="card-body" style="border-top:1px solid var(--border)">
+      <div class="label mb-sm">Gestaltung</div>
+      <div class="choice-cards theme-choices">
+        {% for radio in form.ui_theme %}
+        <label class="choice-card">{{ radio.tag }}
+          <span class="theme-swatch theme-swatch-{{ radio.data.value }}" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><span class="strong">{% if radio.data.value == "warm" %}Warm{% else %}Klar{% endif %}</span><span class="small subtle" style="display:block">{% if radio.data.value == "warm" %}Leinen, Salbei und Serifenschrift{% else %}Hell und sachlich, Petrol als Akzent, schmale Navigation{% endif %}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="hint mt-sm">Gilt nur für Ihr Konto. Hell oder dunkel stellen Sie weiterhin über „Hell/Dunkel“ um.</div>
+    </div>
+    <div class="card-foot"><button class="btn btn-primary" name="save_profile" value="1">Speichern</button></div>
+  </form>
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}
+    <div class="card-head"><h2>Passwort ändern</h2></div>
+    <div class="card-body stack">
+      {% field pw_form.old_password %}{% field pw_form.new_password1 %}{% field pw_form.new_password2 %}
+    </div>
+    <div class="card-foot"><button class="btn btn-primary" name="change_password" value="1">Passwort ändern</button></div>
+  </form>
+</div>
+{% endblock %}

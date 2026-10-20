@@ -1,0 +1,38 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Drucker{% endblock %}
+{% block settings_content %}
+<div class="alert alert-info">{% icon 'printer' %}<div>Binden Sie Ihren Netzwerkdrucker über seine IP-Adresse ein. mietly erkennt das Modell, wählt den passenden Treiber automatisch und druckt eine Testseite. Danach erscheint bei Angeboten, Verträgen, Rechnungen und Protokollen der Knopf <strong>Drucken</strong>.</div></div>
+
+{% if company.printer_ready %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'printer' 18 %} Eingerichteter Drucker</h2>{% status_badge "Bereit" "success" %}</div>
+  <div class="card-body"><dl class="dl">
+    <dt>Adresse</dt><dd>{{ company.printer_host }}</dd>
+    {% if company.printer_model %}<dt>Modell</dt><dd>{{ company.printer_model }}</dd>{% endif %}
+    <dt>Treiber</dt><dd>{{ company.printer_driver }}</dd>
+    {% if company.printer_last_test %}<dt>Letzte Testseite</dt><dd>{{ company.printer_last_test|dt }} – {{ company.printer_last_result }}</dd>{% endif %}
+  </dl></div>
+  <div class="card-foot">
+    <form method="post" data-confirm="Den Drucker aus mietly entfernen?">{% csrf_token %}<button class="btn btn-ghost btn-danger" name="action" value="remove" type="submit">{% icon 'trash-2' 16 %} Entfernen</button></form>
+    <form method="post">{% csrf_token %}<button class="btn" name="action" value="test" type="submit" data-busy="Testseite wird gedruckt …">{% icon 'file-text' 16 %} Testseite drucken</button></form>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  <div class="card-head"><h2>{% if company.printer_ready %}Anderen Drucker einrichten{% else %}Drucker einrichten{% endif %}</h2></div>
+  <div class="form-section">
+    <div class="form-grid">
+      <div class="field col-3">
+        <label for="printer-host">IP-Adresse des Druckers<span class="req">*</span></label>
+        <input class="input" id="printer-host" name="printer_host" value="{{ host }}" placeholder="z. B. 192.168.1.50" required maxlength="255" autocomplete="off" inputmode="url">
+        <div class="hint">Die Adresse steht meist im Menü des Druckers unter Netzwerk oder auf einer Konfigurationsseite.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-foot">
+    <button class="btn btn-primary" name="action" value="setup" type="submit" data-busy="Drucker wird gesucht und eingerichtet …">{% icon 'printer' 16 %} Einrichten & Testseite drucken</button>
+  </div>
+</form>
+{% endblock %}

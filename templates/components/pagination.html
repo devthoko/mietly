@@ -1,0 +1,9 @@
+{% if page.paginator.num_pages > 1 %}
+<div class="pagination">
+  <span>{{ page.start_index }}–{{ page.end_index }} von {{ page.paginator.count }}</span>
+  <div class="row">
+    {% if page.has_previous %}<a class="btn btn-sm" href="{% query seite=page.previous_page_number %}">{% icon 'chevron-left' 14 %} Zurück</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm" href="{% query seite=page.next_page_number %}">Weiter {% icon 'chevron-right' 14 %}</a>{% endif %}
+  </div>
+</div>
+{% endif %}

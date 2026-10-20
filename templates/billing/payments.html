@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Zahlungen{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{% url 'billing:list' %}">Rechnungen</a> {% icon 'chevron-right' 12 %}</div><h1>Zahlungen</h1></div></div>
+<div class="card">
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Datum</th><th>Kunde / Auftrag</th><th>Art</th><th class="hide-sm">Referenz</th><th class="right">Betrag</th></tr></thead>
+    <tbody>{% for p in page %}
+      <tr class="link" data-href="{{ p.order.get_absolute_url }}?schritt=invoice"><td class="nowrap">{{ p.paid_on|d }}</td>
+        <td>{{ p.order.customer }}<div class="cell-sub">{{ p.order.number }}</div></td><td>{{ p.get_method_display }}{% if p.is_refund %} · Erstattung{% endif %}</td>
+        <td class="hide-sm">{{ p.reference }}</td><td class="right num {% if p.is_refund %}danger-text{% endif %}">{{ p.amount|euro }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% else %}<div class="empty"><p>Noch keine Zahlungen erfasst.</p></div>{% endif %}
+</div>
+{% endblock %}

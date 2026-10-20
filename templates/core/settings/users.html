@@ -1,0 +1,24 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Benutzer{% endblock %}
+{% block settings_actions %}<a class="btn btn-primary" href="{% url 'core:user_create' %}">{% icon 'user-plus' 16 %} Benutzer anlegen</a>{% endblock %}
+{% block settings_content %}
+<div class="card">
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Name</th><th>Benutzername</th><th>Rolle</th><th class="hide-sm">Zuletzt angemeldet</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr class="link" data-href="{% url 'core:user_edit' u.pk %}">
+        <td><div class="row"><span class="avatar">{{ u.initials }}</span><div><div class="cell-title">{{ u.display_name }}</div><div class="cell-sub">{{ u.email }}</div></div></div></td>
+        <td>{{ u.username }}</td>
+        <td>{% if u.is_admin %}{% status_badge "Administrator" "accent" %}{% else %}{% status_badge "Mitarbeiter" %}{% endif %}</td>
+        <td class="hide-sm">{{ u.last_login|dt|default:"—" }}</td>
+        <td>{% if u.is_active %}{% status_badge "Aktiv" "success" %}{% else %}{% status_badge "Deaktiviert" "danger" %}{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+<div class="card card-body small muted">
+  <strong>Administratoren</strong> verwalten Einstellungen, Vorlagen, Benutzer und Backups. <strong>Mitarbeiter</strong> erledigen das Tagesgeschäft: Kunden, Artikel, Aufträge, Dokumente und Zahlungen. Die geschäftlichen Sperren im Auftragsablauf gelten für alle Rollen gleichermaßen.
+</div>
+{% endblock %}

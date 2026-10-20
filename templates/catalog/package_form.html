@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{% if package.pk %}{{ package.name }} bearbeiten{% else %}Neues Paket{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{% url 'catalog:package_list' %}">Pakete</a> {% icon 'chevron-right' 12 %}</div>
+    <h1>{% if package.pk %}{{ package.name }} bearbeiten{% else %}Neues Paket{% endif %}</h1></div>
+</div>
+<form method="post" class="card" style="max-width:860px" novalidate data-guard>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-grid">
+      {% field form.name "col-4" %}
+      <div class="col-2" style="align-self:end">{% field form.active %}</div>
+      {% field form.description "col-6" %}
+      {% field form.price "col-2" %}
+      {% field form.vat_rate "col-2" %}
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Enthaltene Artikel</div>
+    <div class="form-section-desc">Bei Verfügbarkeitsprüfung, Packliste und Übergabe wird das Paket in seine Artikel aufgelöst.</div>
+    {{ formset.management_form }}
+    {% for e in formset.non_form_errors %}<div class="alert alert-danger mb-sm">{% icon 'circle-alert' %}<div>{{ e }}</div></div>{% endfor %}
+    <div class="stack-sm">
+      {% for f in formset %}
+      <div class="row">
+        {{ f.id }}
+        <div style="flex:1">{{ f.article }}{% for e in f.article.errors %}<div class="error small">{{ e }}</div>{% endfor %}</div>
+        <div>{{ f.quantity }}</div>
+        {% if f.instance.pk %}<label class="check small" title="Entfernen">{{ f.DELETE }} entfernen</label>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="hint mt-sm">Für weitere Artikel speichern und erneut bearbeiten – es werden jeweils drei leere Zeilen angeboten.</div>
+  </div>
+  <div class="card-foot">
+    <a class="btn btn-ghost" href="{% if package.pk %}{{ package.get_absolute_url }}{% else %}{% url 'catalog:package_list' %}{% endif %}">Abbrechen</a>
+    <button class="btn btn-primary" type="submit">Speichern</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% for title, items in groups %}{% if items %}
+<div class="palette-group">{{ title }}</div>
+{% for it in items %}<a class="palette-item" href="{{ it.url }}">{% icon it.icon 16 'subtle' %}<span>{{ it.title }}</span><span class="sub">{{ it.sub }}</span></a>{% endfor %}
+{% endif %}{% empty %}
+<div class="empty" style="padding:28px"><p>Keine Treffer für „{{ q }}“.</p></div>
+{% endfor %}

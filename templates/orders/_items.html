@@ -1,0 +1,55 @@
+{% if not items_editable and items_lock_reason %}
+<div class="card-body" style="padding-bottom:0"><div class="lock-note small">{% icon 'lock' 16 %}<div>{{ items_lock_reason }}</div></div></div>
+{% endif %}
+{% if items_editable and offer and not offer.is_signed %}
+<div class="card-body" style="padding-bottom:0"><div class="alert alert-info small">{% icon "info" 16 %}<div>Das Angebot {{ offer.number }} ist bereits erstellt. Jede Änderung an den Positionen oder der Kaution macht es ungültig – danach bitte das Angebot neu erstellen und erneut versenden.</div></div></div>
+{% endif %}
+{% if shortages %}
+<div class="card-body" style="padding-bottom:0"><div class="alert alert-danger">{% icon 'triangle-alert' %}<div><strong>Nicht genügend Bestand im Mietzeitraum:</strong>
+  {% for a in shortages %}{{ a.article.name }} (benötigt {{ a.required }}, frei {{ a.available }}){% if not forloop.last %}, {% endif %}{% endfor %}.
+  Das Angebot kann erst erstellt werden, wenn die Mengen passen.</div></div></div>
+{% endif %}
+{% if items %}
+<div class="pos-list">
+  <div class="pos-row pos-head"><span>Artikel</span><span class="right">{% if items_editable %}Anzahl × Preis · Rabatt{% else %}Anzahl × Preis{% endif %}</span><span class="right">Summe</span><span></span></div>
+  {% for item in items %}
+  <div class="pos-row">
+    <div class="pos-main">
+      <div class="cell-title">{% if item.kind == "package" %}{% icon 'package' 14 'subtle' %} {% endif %}{{ item.description }}</div>
+      {% if item.detail %}<div class="cell-sub">{{ item.detail }}</div>{% endif %}
+      {% if item.package %}<div class="cell-sub clamp-2">{% for pi in item.package.items.all %}{{ pi.quantity }}× {{ pi.article.name }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+      {% if item.article %}{% with av=availability|get_item:item.article.pk %}{% if av and not av.ok %}<div class="cell-sub danger-text">nur {{ av.available }} im Zeitraum verfügbar</div>{% endif %}{% endwith %}{% endif %}
+    </div>
+    {% if items_editable %}
+    <form class="pos-edit" hx-post="{% url 'orders:item_update' order.pk item.pk %}" hx-target="#items" hx-trigger="change">
+      {% csrf_token %}
+      <input class="input input-sm qty-input" type="number" name="quantity" min="1" value="{{ item.quantity }}" aria-label="Menge" style="width:62px">
+      <span class="subtle">×</span>
+      <div class="input-suffix"><input class="input input-sm price-input" type="number" step="0.01" min="0" name="unit_price" value="{{ item.unit_price|stringformat:'.2f' }}" aria-label="Einzelpreis" style="width:116px"><span>€</span></div>
+      <div class="input-suffix"><input class="input input-sm" type="number" step="0.5" min="0" max="100" name="discount_percent" value="{{ item.discount_percent|stringformat:'g' }}" aria-label="Rabatt in Prozent" style="width:66px;text-align:right"><span>%</span></div>
+    </form>
+    {% else %}
+    <div class="pos-edit num">{{ item.quantity }} × {{ item.unit_price|euro }}{% if item.discount_percent %} · −{{ item.discount_percent|percent }}{% endif %}</div>
+    {% endif %}
+    <div class="pos-total num strong">{{ item.total|euro }}</div>
+    <div class="pos-del">{% if items_editable %}<form hx-post="{% url 'orders:item_remove' order.pk item.pk %}" hx-target="#items">{% csrf_token %}<button class="btn btn-ghost btn-icon btn-sm" type="submit" title="Entfernen" aria-label="Entfernen">{% icon 'trash-2' 15 %}</button></form>{% endif %}</div>
+  </div>
+  {% endfor %}
+  <div class="pos-row pos-foot"><span>Gesamtsumme{% if not company.small_business %} (inkl. USt){% endif %}</span><span></span><span class="right num">{{ order_total|euro }}</span><span></span></div>
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">{% icon 'shopping-bag' 22 %}</div><h3>Noch keine Positionen</h3><p>Suchen Sie oben nach Artikeln oder Paketen. Die Verfügbarkeit im Mietzeitraum wird direkt angezeigt.</p></div>
+{% endif %}
+<div class="card-foot" style="justify-content:space-between;align-items:center">
+  <div class="small subtle">{% if order.rental_days %}Mietdauer {{ order.rental_days }} Tag{{ order.rental_days|pluralize:"e" }}{% endif %}</div>
+  {% if items_editable %}
+  <form hx-post="{% url 'orders:deposit_amount' order.pk %}" hx-target="#items" hx-trigger="change" class="row">
+    {% csrf_token %}
+    <label class="label" for="dep-amount">Kaution</label>
+    <div class="input-suffix"><input class="input input-sm price-input" id="dep-amount" type="number" step="0.01" min="0" name="amount" style="width:116px" value="{{ order.deposit_amount|stringformat:'.2f' }}"><span>€</span></div>
+    {% if order.suggested_deposit != order.deposit_amount %}<span class="tiny subtle">Vorschlag {{ order.suggested_deposit|euro }}</span>{% endif %}
+  </form>
+  {% else %}
+  <div class="small">Kaution: <strong>{{ order.deposit_amount|euro }}</strong></div>
+  {% endif %}
+</div>

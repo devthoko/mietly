@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{{ d.title }} {{ d.number }}</title>
+<link rel="stylesheet" href="{{ css_path }}">
+</head>
+<body>
+<div class="footer">
+  <div><strong>{{ d.company.name }}</strong><br>{% if d.company.owner %}Inh. {{ d.company.owner }}<br>{% endif %}{{ d.company.street }}<br>{{ d.company.city_line }}</div>
+  <div>{% if d.company.phone %}Tel. {{ d.company.phone }}<br>{% endif %}{% if d.company.email %}{{ d.company.email }}<br>{% endif %}{{ d.company.website }}</div>
+  <div>{% if d.company.tax_number %}Steuernr. {{ d.company.tax_number }}<br>{% endif %}{% if d.company.vat_id %}USt-IdNr. {{ d.company.vat_id }}<br>{% endif %}{% if d.company.small_business %}Kleinunternehmer gem. § 19 UStG{% endif %}</div>
+  <div class="bank">{% if d.company.iban %}{{ d.company.bank_name }}<br>IBAN {{ d.company.iban }}<br>{% if d.company.bic %}BIC {{ d.company.bic }}{% endif %}{% endif %}</div>
+  <div class="pages"></div>
+</div>
+
+<div class="head">
+  <div class="logo">{% if d.company.logo %}<img src="{{ d.company.logo|fileuri }}" alt="">{% else %}<div class="name">{{ d.company.name }}</div>{% endif %}</div>
+  <div class="company">{{ d.company.name }}<br>{{ d.company.street }}<br>{{ d.company.city_line }}{% if d.company.phone %}<br>Tel. {{ d.company.phone }}{% endif %}{% if d.company.email %}<br>{{ d.company.email }}{% endif %}</div>
+</div>
+
+<div class="address-row">
+  <div class="address">
+    <div class="sender-line">{{ d.company.address_line }}</div>
+    <div class="recipient">{% if d.customer.salutation %}{{ d.customer.salutation }}<br>{% endif %}{{ d.customer.name }}{% for l in d.customer.lines %}<br>{{ l }}{% endfor %}</div>
+  </div>
+  <div class="infoblock"><table>
+    {% block info %}{% endblock %}
+    <tr><td>Kundennummer</td><td>{{ d.customer.number }}</td></tr>
+    <tr><td>Auftrag</td><td>{{ d.order.number }}</td></tr>
+  </table></div>
+</div>
+
+{% block content %}{% endblock %}
+</body>
+</html>

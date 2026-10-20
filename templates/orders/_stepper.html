@@ -1,0 +1,12 @@
+<nav class="card stepper" id="stepper" aria-label="Auftragsschritte"{% if oob %} hx-swap-oob="true"{% endif %}>
+    <ol>
+      {% for s in state.steps %}
+      <li class="{{ s.state }}{% if s.key == selected %} selected{% endif %}">
+        <a href="?schritt={{ s.key }}">
+          <span class="step-dot">{% if s.done %}{% icon 'check' 14 %}{% elif s.locked %}{% icon 'lock' 12 %}{% else %}{{ s.number }}{% endif %}</span>
+          <span class="step-text"><span class="step-title">{{ s.title }}</span><span class="step-sum">{% if s.summary %}{{ s.summary }}{% elif s.blockers %}{{ s.blockers.0 }}{% endif %}</span></span>
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+  </nav>

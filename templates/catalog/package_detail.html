@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ package.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{% url 'catalog:package_list' %}">Pakete</a> {% icon 'chevron-right' 12 %}</div>
+    <h1>{{ package.name }} {% if not package.active %}{% status_badge "inaktiv" %}{% endif %}</h1></div>
+  <div class="page-actions">
+    <form method="post" action="{% url 'catalog:package_delete' package.pk %}" data-confirm="Paket „{{ package.name }}“ löschen?">{% csrf_token %}<button class="btn btn-ghost btn-danger">{% icon 'trash-2' 16 %} Löschen</button></form>
+    <a class="btn" href="{% url 'catalog:package_edit' package.pk %}">{% icon 'pencil' 16 %} Bearbeiten</a>
+  </div>
+</div>
+<div class="split">
+  <div class="card">
+    <div class="card-head"><h2>Inhalt</h2></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Artikel</th><th class="right">Menge</th><th class="right">Einzelpreis</th><th class="right">Summe</th></tr></thead>
+      <tbody>{% for i in package.items.all %}
+        <tr class="link" data-href="{{ i.article.get_absolute_url }}"><td><div class="row">{% if i.article.image %}<img class="thumb" src="{{ i.article.image.url }}" alt="">{% else %}<span class="thumb">{% icon 'image' 16 %}</span>{% endif %}<div class="cell-title">{{ i.article.name }}</div></div></td>
+        <td class="right num">{{ i.quantity }}</td><td class="right num">{{ i.article.price|euro }}</td><td class="right num">{{ i.line_total|euro }}</td></tr>
+      {% endfor %}</tbody>
+      <tfoot><tr><td colspan="3">Summe der Einzelpreise</td><td class="right num">{{ package.items_price|euro }}</td></tr></tfoot>
+    </table></div>
+  </div>
+  <div class="stack">
+    <div class="card kpi"><div class="kpi-label">Paketpreis</div><div class="kpi-value">{{ package.effective_price|euro }}</div>
+      <div class="kpi-sub">{% if package.price is None %}Summe der Einzelpreise{% elif package.savings > 0 %}Ersparnis {{ package.savings|euro }}{% else %}fester Paketpreis{% endif %}</div></div>
+    <div class="card card-body"><dl class="dl"><dt>Kaution</dt><dd class="num">{{ package.deposit|euro }}</dd><dt>Zusatztag</dt><dd class="num">{{ package.extra_day_price|euro }}</dd></dl>
+      {% if package.description %}<hr><p class="muted small">{{ package.description|nl2br_safe }}</p>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

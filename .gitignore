@@ -1,0 +1,21 @@
+# Laufzeit und Build – gehören nicht ins Repository
+.venv/
+staticfiles/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+*.run
+*.run.sha256
+
+# Daten und Geheimnisse – niemals einchecken
+media/
+*.env
+*.sqlite3
+*.zst
+*.sql
+*.dump
+*.pem
+*.key
+*.crt
+mietly-erstzugang.txt

@@ -1,0 +1,7 @@
+{% for message in messages %}
+<div class="toast toast-{{ message.tags }}" role="status">
+  {% if message.tags == "success" %}{% icon 'circle-check' %}{% elif message.tags == "error" %}{% icon 'circle-alert' %}{% elif message.tags == "warning" %}{% icon 'triangle-alert' %}{% else %}{% icon 'info' %}{% endif %}
+  <div>{{ message }}</div>
+  <button type="button" class="btn btn-ghost btn-icon btn-sm" data-dismiss aria-label="Schließen">{% icon 'x' 14 %}</button>
+</div>
+{% endfor %}

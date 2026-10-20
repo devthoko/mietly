@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.get_kind_display }} unterschreiben{% endblock %}
+{% block body_class %}focus-mode{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{{ doc.order.get_absolute_url }}">{{ doc.order.number }} · {{ doc.order.title }}</a> {% icon 'chevron-right' 12 %} Unterschrift</div>
+    <h1>{{ doc.display_name }} unterschreiben</h1></div>
+  <div class="page-actions"><a class="btn" href="{{ doc.order.get_absolute_url }}">{% icon 'arrow-left' 16 %} Zurück zum Auftrag</a></div>
+</div>
+<div class="split sign-layout" style="grid-template-columns:minmax(0,1fr) 420px">
+  <div class="card">
+    <div class="card-head"><h2>Dokument</h2><a class="btn btn-sm" href="{% url 'documents:download' doc.pk %}" target="_blank">{% icon 'external-link' 14 %} In neuem Fenster</a></div>
+    <iframe class="doc-preview" src="{% url 'documents:download' doc.pk %}" title="{{ doc.display_name }}" style="border:0;border-radius:0 0 14px 14px"></iframe>
+  </div>
+  <div class="stack">
+    <form method="post" class="card" data-sign-form novalidate>
+      {% csrf_token %}
+      <div class="card-head"><h2>{% icon 'signature' 18 %} Digital unterschreiben</h2></div>
+      <div class="card-body stack">
+        {% for e in form.non_field_errors %}<div class="alert alert-danger">{% icon 'circle-alert' %}<div>{{ e }}</div></div>{% endfor %}
+        <a class="btn btn-block mobile-only" href="{% url 'documents:download' doc.pk %}" target="_blank">{% icon 'file-text' 16 %} Dokument vollständig ansehen</a>
+        {% field form.signer_name %}
+        <div>
+          <div class="row-between mb-sm"><span class="label">Unterschrift</span><button class="btn btn-ghost btn-sm" type="button" data-clear-signature="pad">{% icon 'eraser' 14 %} Löschen</button></div>
+          <div class="sign-pad-wrap" id="pad" data-signature-pad data-field="{{ form.signature.id_for_label }}">
+            <canvas></canvas><span class="sign-x">×</span><div class="sign-line"></div><div class="sign-hint">Mit Finger, Stift oder Maus unterschreiben</div>
+          </div>
+          {{ form.signature }}
+        </div>
+        {% field form.consent %}
+        <p class="tiny subtle">Mit Ihrer Unterschrift wird das Dokument verbindlich. Name und Zeitpunkt werden gespeichert, die unterschriebene Fassung wird sicher aufbewahrt.</p>
+      </div>
+      <div class="card-foot"><button class="btn btn-primary btn-lg btn-block" type="submit" disabled>{% icon 'check' 18 %} Verbindlich unterschreiben</button></div>
+    </form>
+    <form method="post" action="{% url 'documents:upload_signed' doc.pk %}" enctype="multipart/form-data" class="card" novalidate>
+      {% csrf_token %}
+      <div class="card-head"><h2>{% icon 'upload' 18 %} Oder: unterschriebenes Dokument hochladen</h2></div>
+      <div class="card-body stack">
+        <div class="field"><label for="up-name">Unterschrieben von<span class="req">*</span></label>
+          <input class="input" id="up-name" name="signer_name" value="{{ upload_form.signer_name.value|default:'' }}" required maxlength="120"></div>
+        <div class="field"><label for="up-file">Datei (PDF, JPG oder PNG)<span class="req">*</span></label>
+          <input class="input" id="up-file" type="file" name="file" accept="application/pdf,image/jpeg,image/png" required style="padding-top:6px"></div>
+      </div>
+      <div class="card-foot"><button class="btn" type="submit">Hochladen</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Verlauf{% endblock %}
+{% block settings_content %}
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Nach Text, Auftrag oder Benutzer filtern"></div>
+  </form>
+  <div class="table-wrap"><table class="table compact">
+    <thead><tr><th>Zeitpunkt</th><th>Benutzer</th><th>Vorgang</th><th>Auftrag</th></tr></thead>
+    <tbody>
+    {% for a in page %}
+      <tr><td class="nowrap">{{ a.created_at|dt }}</td><td>{{ a.user.display_name|default:"System" }}</td><td>{{ a.message }}</td>
+      <td>{% if a.order %}<a href="{{ a.order.get_absolute_url }}">{{ a.order.number }}</a>{% endif %}</td></tr>
+    {% empty %}
+      <tr><td colspan="4" class="center subtle">Keine Einträge.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+</div>
+{% endblock %}

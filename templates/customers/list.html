@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Kunden{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Stammdaten</div><h1>Kunden</h1></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'customers:create' %}">{% icon 'user-plus' 16 %} Kunde anlegen</a></div>
+</div>
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Name, E-Mail, Telefon, Ort oder Kundennummer"></div>
+    <span class="small subtle">{{ page.paginator.count }} von {{ total }} Kunden</span>
+  </form>
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Name</th><th class="hide-sm">Kontakt</th><th class="hide-sm">Ort</th><th class="right">Aufträge</th><th class="hide-sm">Letztes Event</th></tr></thead>
+    <tbody>
+    {% for c in page %}
+      <tr class="link" data-href="{{ c.get_absolute_url }}">
+        <td><div class="row"><span class="avatar">{{ c.full_name|initials }}</span><div><div class="cell-title">{{ c.full_name }}</div><div class="cell-sub">{{ c.number }}</div></div></div></td>
+        <td class="hide-sm"><div>{{ c.email|default:"" }}</div><div class="cell-sub">{{ c.phone }}</div></td>
+        <td class="hide-sm">{{ c.zip_code }} {{ c.city }}</td>
+        <td class="right num" data-label="Aufträge:">{{ c.order_count }}</td>
+        <td class="hide-sm">{{ c.last_event|d|default:"—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% elif q %}
+  <div class="empty"><div class="empty-icon">{% icon 'search-x' 22 %}</div><h3>Keine Treffer</h3><p>Für „{{ q }}“ wurde kein Kunde gefunden.</p><a class="btn btn-primary" href="{% url 'customers:create' %}">Kunde anlegen</a></div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'users' 22 %}</div><h3>Noch keine Kunden</h3><p>Legen Sie Ihren ersten Kunden an – oder direkt beim Erstellen eines Auftrags.</p><a class="btn btn-primary" href="{% url 'customers:create' %}">Kunde anlegen</a></div>
+  {% endif %}
+</div>
+{% endblock %}

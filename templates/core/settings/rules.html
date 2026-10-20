@@ -1,0 +1,42 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Geschäftsregeln{% endblock %}
+{% block settings_content %}
+<div class="alert alert-info">{% icon 'shield-check' %}<div><strong>Feste Regeln, die sich nicht abschalten lassen:</strong> Ein Mietvertrag setzt ein unterschriebenes Angebot voraus, eine Rechnung einen unterschriebenen Mietvertrag. Die Übergabe ist erst nach vollständiger Bezahlung der Rechnung möglich und wird erst mit unterschriebenem Übergabeprotokoll abgeschlossen.</div></div>
+{% if form %}
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-section-title">Fristen & Mietdauer</div>
+    <div class="form-grid">
+      {% field form.offer_valid_days "col-2" %}
+      {% field form.payment_due_days "col-2" %}
+      {% field form.included_rental_days "col-2" %}
+      {% field form.buffer_days "col-2" %}
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Kaution & Stornierung</div>
+    <div class="form-grid">
+      {% field form.deposit_required_before_handover "col-6" %}
+      {% field form.cancellation_terms "col-6" %}
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Lieferung</div>
+    <div class="form-grid">
+      {% field form.delivery_fee "col-2" %}
+    </div>
+  </div>
+  <div class="card-foot"><button class="btn btn-primary" type="submit">Speichern</button></div>
+</form>
+{% else %}
+<div class="card card-body"><dl class="dl">
+  <dt>Angebot gültig</dt><dd>{{ company.offer_valid_days }} Tage</dd>
+  <dt>Zahlungsziel</dt><dd>{{ company.payment_due_days }} Tage</dd>
+  <dt>Inklusive Miettage</dt><dd>{{ company.included_rental_days }}</dd>
+  <dt>Puffertage</dt><dd>{{ company.buffer_days }}</dd>
+  <dt>Kaution vor Übergabe</dt><dd>{{ company.deposit_required_before_handover|yesno:"erforderlich,nicht erforderlich" }}</dd>
+  <dt>Lieferpauschale</dt><dd>{% if company.delivery_fee %}{{ company.delivery_fee|euro }}{% else %}keine{% endif %}</dd>
+</dl></div>
+{% endif %}
+{% endblock %}

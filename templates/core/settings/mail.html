@@ -1,0 +1,53 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}E-Mail-Versand{% endblock %}
+{% block settings_content %}
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-section-title">SMTP-Server</div>
+    <div class="form-section-desc">Die Zugangsdaten finden Sie bei Ihrem E-Mail-Anbieter. Das Passwort wird verschlüsselt gespeichert.</div>
+    <div class="form-grid">
+      {% field form.smtp_host "col-3" %}
+      {% field form.smtp_port "col-1" %}
+      {% field form.smtp_security "col-2" %}
+      {% field form.smtp_user "col-3" %}
+      {% field form.smtp_password "col-3" %}
+    </div>
+    {% if company.smtp_password_enc %}<div class="small subtle mt-sm">{% icon 'lock' 14 %} Ein Passwort ist gespeichert.</div>{% endif %}
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Absender</div>
+    <div class="form-grid">
+      {% field form.mail_from_email "col-3" %}
+      {% field form.mail_from_name "col-3" %}
+      {% field form.mail_bcc "col-3" %}
+      {% field form.mail_greeting "col-3" "Gilt für alle E-Mail-Vorlagen. Ohne hinterlegte Anrede (Frau/Herr) wird „Guten Tag Vorname Nachname“ verwendet." %}
+    </div>
+  </div>
+  <div class="card-foot"><button class="btn btn-primary" type="submit">Speichern</button></div>
+</form>
+
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  <div class="card-head"><h2>{% icon 'send' 18 %} Verbindung testen</h2></div>
+  <div class="card-body">
+    <div class="row wrap" style="align-items:flex-end">
+      <div style="flex:1 1 260px">{% field test_form.to %}</div>
+      <button class="btn" name="send_test" value="1" type="submit" {% if not company.mail_configured %}disabled{% endif %}>Test-E-Mail senden</button>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-head"><h2>Versandprotokoll</h2><span class="sub">die letzten 15 E-Mails</span></div>
+  {% if log %}
+  <div class="table-wrap"><table class="table compact">
+    <thead><tr><th>Zeitpunkt</th><th>Empfänger</th><th>Betreff</th><th>Status</th></tr></thead>
+    <tbody>{% for m in log %}
+      <tr><td class="nowrap">{{ m.created_at|dt }}</td><td>{{ m.to }}</td><td>{{ m.subject }}{% if m.attachments %}<div class="cell-sub">{% icon 'paperclip' 12 %} {{ m.attachments|join:", " }}</div>{% endif %}</td>
+      <td>{% if m.status == "sent" %}{% status_badge "Gesendet" "success" %}{% else %}<span title="{{ m.error }}">{% status_badge "Fehler" "danger" %}</span><div class="cell-sub">{{ m.error|truncatechars:80 }}</div>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<div class="empty"><p>Noch keine E-Mails versendet.</p></div>{% endif %}
+</div>
+{% endblock %}

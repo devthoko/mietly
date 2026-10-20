@@ -1,0 +1,23 @@
+{% for r in results %}
+<form class="picker-item" hx-post="{% url 'orders:item_add' order.pk %}" hx-target="#items" hx-swap="innerHTML">
+  {% csrf_token %}
+  {% if r.kind == "package" %}
+    <input type="hidden" name="package" value="{{ r.obj.pk }}">
+    <span class="thumb" style="background:var(--accent-soft);color:var(--accent-text)">{% icon 'package' 16 %}</span>
+    <span class="grow"><span class="strong">{{ r.obj.name }}</span>
+      <span class="small subtle" style="display:block">Paket · {% if r.available > 0 %}<span class="success-text">{{ r.available }}× verfügbar</span>{% else %}<span class="danger-text">im Zeitraum nicht vollständig verfügbar</span>{% endif %}</span>
+      <span class="small subtle" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{% for i in r.obj.items.all %}{{ i.quantity }}× {{ i.article.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></span>
+  {% else %}
+    <input type="hidden" name="article" value="{{ r.obj.pk }}">
+    {% if r.obj.image %}<img class="thumb" src="{{ r.obj.image.url }}" alt="">{% else %}<span class="thumb">{% icon 'image' 16 %}</span>{% endif %}
+    <span class="grow"><span class="strong">{{ r.obj.name }}</span>
+      <span class="small subtle" style="display:block">{{ r.obj.number }}{% if r.obj.category %} · {{ r.obj.category }}{% endif %} ·
+        {% if r.available > 0 %}<span class="success-text">{{ r.available }} verfügbar</span>{% else %}<span class="danger-text">im Zeitraum nicht verfügbar</span>{% endif %}</span></span>
+  {% endif %}
+  <span class="num small">{{ r.price|euro }}</span>
+  <input class="input input-sm qty-input" type="number" name="quantity" value="1" min="1" aria-label="Menge" style="width:64px">
+  <button class="btn btn-sm btn-primary" type="submit">{% icon 'plus' 14 %}</button>
+</form>
+{% empty %}
+<div class="picker-item subtle">Keine Treffer{% if q %} für „{{ q }}“{% endif %}. <a href="{% url 'catalog:article_create' %}" target="_blank">Neuen Artikel anlegen</a></div>
+{% endfor %}

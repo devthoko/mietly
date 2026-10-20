@@ -1,0 +1,102 @@
+{% if order.handover.is_completed %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'package-check' 18 %} Übergabe</h2>{% status_badge "Abgeschlossen" "success" %}</div>
+  <div class="card-body"><dl class="dl">
+    <dt>Übergeben am</dt><dd>{{ handover.performed_at|dtlong }}</dd>
+    <dt>Entgegengenommen</dt><dd>{{ handover.recipient_name }}</dd>
+    <dt>Durchgeführt von</dt><dd>{{ handover.performed_by.display_name|default:"—" }}</dd>
+    {% if handover.notes %}<dt>Bemerkungen</dt><dd>{{ handover.notes|nl2br_safe }}</dd>{% endif %}
+  </dl></div>
+  {% if handover_signed_doc %}{% include "orders/_doc_card.html" with doc=handover_signed_doc %}{% endif %}
+</div>
+{% include "orders/_photos.html" with editable=False stage="handover" %}
+
+{% elif not handover_allowed %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'package-check' 18 %} Übergabe</h2>{% status_badge "Gesperrt" "danger" %}</div>
+  <div class="card-body stack">
+    <div class="lock-note">{% icon 'shield-alert' %}<div><strong>{{ handover_block }}</strong>
+      <div class="small mt-sm">Diese Sperre ist verbindlich und gilt für alle Benutzer, auch für Administratoren.</div></div></div>
+    <div class="row wrap">
+      {% if main_invoice %}<a class="btn btn-primary" href="?schritt=invoice">{% icon 'banknote' 16 %} Zahlungseingang erfassen</a>{% endif %}
+      {% if not main_invoice %}<a class="btn" href="?schritt={{ state.current.key }}">Zum aktuellen Schritt</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% if deposit.outstanding > 0 and main_invoice and order.is_active %}
+<form method="post" action="{% url 'orders:add_deposit' order.pk %}" class="card" novalidate>
+  {% csrf_token %}<input type="hidden" name="next" value="handover">
+  <div class="card-head"><h2>{% icon 'piggy-bank' 18 %} Kaution erfassen</h2><span class="sub">offen {{ deposit.outstanding|euro }}</span></div>
+  <div class="card-body row wrap inline-form" style="align-items:flex-end">
+    <div class="field" style="width:130px"><label>Betrag</label><div class="input-suffix">{{ deposit_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ deposit_form.date }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ deposit_form.method }}</div>
+    <button class="btn btn-primary" type="submit">Kaution erfassen</button>
+  </div>
+</form>
+{% endif %}
+
+{% elif not handover %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'package-check' 18 %} Übergabe</h2>{% status_badge "Freigegeben" "success" %}</div>
+  <div class="card-body stack">
+    <div class="alert alert-success">{% icon 'circle-check' %}<div>Die Rechnung ist vollständig bezahlt{% if deposit.required %} und die Kaution ist eingegangen{% endif %}. Die Übergabe kann beginnen.</div></div>
+    <p class="small muted">Beim Start wird die Übergabeliste mit allen Artikeln und Mengen vorbereitet{% if not documents %} und – falls noch nicht vorhanden – eine Packliste erstellt{% endif %}. Anschließend prüfen Sie gemeinsam mit dem Kunden Anzahl und Zustand, nehmen Fotos auf und lassen das Protokoll unterschreiben.</p>
+    <form method="post" action="{% url 'orders:start_handover' order.pk %}">{% csrf_token %}<button class="btn btn-primary btn-lg" type="submit">{% icon 'play' 18 %} Übergabe starten</button></form>
+  </div>
+</div>
+
+{% else %}
+<form method="post" action="{% url 'orders:save_handover' order.pk %}" class="card" novalidate data-guard>
+  {% csrf_token %}
+  <div class="card-head"><h2>{% icon 'package-check' 18 %} Übergabe erfassen</h2>{% status_badge "In Arbeit" "info" %}</div>
+  <div class="card-body"><div class="form-grid">
+    {% field handover_form.performed_at "col-2" %}
+    {% field handover_form.recipient_name "col-4" %}
+  </div></div>
+  <div style="border-top:1px solid var(--border)">
+    {% for item in handover_items %}
+    <div class="check-row">
+      {% if item.article.image %}<img class="thumb" src="{{ item.article.image.url }}" alt="">{% else %}<span class="thumb">{% icon 'image' 16 %}</span>{% endif %}
+      <div style="min-width:0"><div class="strong">{{ item.article.name }}</div><div class="small subtle">geplant: {{ item.planned_qty }} · {{ item.article.storage_location|default:item.article.number }}</div></div>
+      <div class="field"><label class="tiny" for="hq-{{ item.pk }}">Übergeben</label>
+        <div class="num-stepper"><button type="button" class="btn btn-sm btn-icon" data-step="-1" aria-label="weniger">−</button><input class="input input-sm qty-input" id="hq-{{ item.pk }}" type="number" min="0" name="item-{{ item.pk }}-quantity" value="{{ item.quantity }}"><button type="button" class="btn btn-sm btn-icon" data-step="1" aria-label="mehr">+</button></div></div>
+      <div class="seg" role="radiogroup" aria-label="Zustand">
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="good" {% if item.condition == "good" %}checked{% endif %}>gut</label>
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="used" {% if item.condition == "used" %}checked{% endif %}>Spuren</label>
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="damaged" {% if item.condition == "damaged" %}checked{% endif %}>defekt</label>
+      </div>
+      <details class="extra-details"{% if item.existing_damage or item.note %} open{% endif %}>
+        <summary>{% icon 'pencil' 14 %} Vorschäden / Bemerkung{% if item.existing_damage or item.note %} · erfasst{% endif %}</summary>
+        <div class="extra">
+          <input class="input input-sm" name="item-{{ item.pk }}-existing_damage" value="{{ item.existing_damage }}" placeholder="Bereits vorhandene Schäden">
+          <input class="input input-sm" name="item-{{ item.pk }}-note" value="{{ item.note }}" placeholder="Bemerkung">
+        </div>
+      </details>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="card-body" style="border-top:1px solid var(--border)">{% field handover_form.notes %}</div>
+  <div class="card-foot sticky-actions">
+    <button class="btn" type="submit">Zwischenspeichern</button>
+    <button class="btn btn-primary" type="submit" name="protocol" value="1">{% icon 'signature' 16 %} Protokoll erstellen & unterschreiben</button>
+  </div>
+</form>
+
+{% include "orders/_photos.html" with editable=True stage="handover" %}
+
+<div class="card">
+  <div class="card-head"><h2>{% icon 'file-text' 18 %} Übergabeprotokoll</h2></div>
+  {% if handover_doc %}
+    {% include "orders/_doc_card.html" with doc=handover_doc %}
+    {% if handover_doc.is_signed %}
+    <div class="card-foot" style="justify-content:space-between">
+      <span class="small subtle">Das Protokoll ist unterschrieben. Mit dem Abschluss wird die Übergabe verbindlich dokumentiert.</span>
+      <form method="post" action="{% url 'orders:complete_handover' order.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'circle-check' 16 %} Übergabe abschließen</button></form>
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="card-body small muted">Nach dem Erfassen der Mengen und Zustände erstellen Sie das Protokoll. <strong>Die Übergabe kann erst abgeschlossen werden, wenn das Protokoll unterschrieben ist.</strong> Werden danach Angaben geändert, muss ein neues Protokoll unterschrieben werden.</div>
+  {% endif %}
+</div>
+{% endif %}

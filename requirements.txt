@@ -1,0 +1,10 @@
+# Laufzeit-Abhängigkeiten (feste Versionen für reproduzierbare Installationen)
+Django==5.2.18
+psycopg[binary]==3.3.6
+gunicorn==26.2.0
+weasyprint==70.0
+argon2-cffi==25.1.0
+django-htmx==1.29.0
+pillow==13.0.0
+cryptography==50.0.2
+requests==2.34.2

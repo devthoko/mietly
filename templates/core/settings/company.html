@@ -1,0 +1,35 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Geschäftsdaten{% endblock %}
+{% block settings_content %}
+{% if form %}
+<form method="post" enctype="multipart/form-data" class="card" novalidate>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-section-title">Betrieb</div>
+    <div class="form-section-desc">Erscheint im Briefkopf und in der Fußzeile aller Dokumente.</div>
+    <div class="form-grid">
+      {% field form.name "col-4" %}
+      {% field form.owner "col-2" %}
+      {% field form.street "col-6" %}
+      {% field form.zip_code "col-2" %}
+      {% field form.city "col-4" %}
+      {% field form.phone "col-2" %}
+      {% field form.email "col-2" %}
+      {% field form.website "col-2" %}
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Logo</div>
+    <div class="form-section-desc">PNG, JPG oder WebP – am besten im Querformat mit transparentem Hintergrund.</div>
+    <div class="row wrap" style="gap:20px;align-items:center">
+      {% if company.logo %}<img src="{{ company.logo.url }}" alt="Logo" style="max-height:64px;max-width:220px;background:#fff;padding:8px;border-radius:10px;border:1px solid var(--border)">{% endif %}
+      {{ form.logo }}
+    </div>
+    {% for e in form.logo.errors %}<div class="error small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="card-foot"><button class="btn btn-primary" type="submit">Speichern</button></div>
+</form>
+{% else %}
+<div class="card card-body"><dl class="dl"><dt>Firmenname</dt><dd>{{ company.name }}</dd><dt>Anschrift</dt><dd>{{ company.street }}, {{ company.zip_code }} {{ company.city }}</dd><dt>Telefon</dt><dd>{{ company.phone|default:"—" }}</dd><dt>E-Mail</dt><dd>{{ company.email|default:"—" }}</dd></dl></div>
+{% endif %}
+{% endblock %}

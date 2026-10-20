@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Einstellungen{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Einstellungen</div>
+    <h1>{% block settings_title %}{% endblock %}</h1>
+  </div>
+  <div class="page-actions">{% block settings_actions %}{% endblock %}</div>
+</div>
+<div class="settings-layout">
+  <nav class="settings-nav">
+    <a href="{% url 'core:settings' %}" class="{% if section == 'company' %}active{% endif %}">{% icon 'building-2' 16 %} Geschäftsdaten</a>
+    <a href="{% url 'core:settings_tax' %}" class="{% if section == 'tax' %}active{% endif %}">{% icon 'landmark' 16 %} Steuer & Bank</a>
+    <a href="{% url 'core:settings_rules' %}" class="{% if section == 'rules' %}active{% endif %}">{% icon 'sliders-horizontal' 16 %} Geschäftsregeln</a>
+    <a href="{% url 'core:settings_templates' %}" class="{% if section == 'templates' %}active{% endif %}">{% icon 'file-pen-line' 16 %} Vorlagen</a>
+    {% if request.user.is_admin %}
+    <a href="{% url 'core:settings_mail' %}" class="{% if section == 'mail' %}active{% endif %}">{% icon 'mail' 16 %} E-Mail</a>
+    <a href="{% url 'core:settings_printer' %}" class="{% if section == 'printer' %}active{% endif %}">{% icon 'printer' 16 %} Drucker</a>
+    <a href="{% url 'core:settings_webdav' %}" class="{% if section == 'webdav' %}active{% endif %}">{% icon 'cloud' 16 %} Cloud-Ablage</a>
+    <a href="{% url 'core:users' %}" class="{% if section == 'users' %}active{% endif %}">{% icon 'users-round' 16 %} Benutzer</a>
+    <a href="{% url 'core:backups' %}" class="{% if section == 'backups' %}active{% endif %}">{% icon 'database-backup' 16 %} Datensicherung</a>
+    <a href="{% url 'core:activity' %}" class="{% if section == 'activity' %}active{% endif %}">{% icon 'history' 16 %} Verlauf</a>
+    {% endif %}
+    <a href="{% url 'core:about' %}" class="{% if section == 'about' %}active{% endif %}">{% icon 'info' 16 %} Über mietly</a>
+  </nav>
+  <div class="stack">
+    {% if readonly %}<div class="alert alert-info">{% icon 'lock' %}<div>Diese Einstellungen können nur Administratoren ändern.</div></div>{% endif %}
+    {% block settings_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

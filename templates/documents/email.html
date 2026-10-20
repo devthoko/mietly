@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}E-Mail senden{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{{ doc.order.get_absolute_url }}">{{ doc.order.number }} · {{ doc.order.title }}</a> {% icon 'chevron-right' 12 %} E-Mail</div>
+    <h1>{{ doc.display_name }} versenden</h1></div>
+</div>
+{% if not company.mail_configured %}
+<div class="alert alert-warning mb">{% icon 'triangle-alert' %}<div>Der E-Mail-Versand ist noch nicht eingerichtet. {% if request.user.is_admin %}<a href="{% url 'core:settings_mail' %}">Jetzt einrichten</a>{% else %}Bitte wenden Sie sich an einen Administrator.{% endif %}</div></div>
+{% endif %}
+<form method="post" class="card" style="max-width:760px" novalidate>
+  {% csrf_token %}
+  <div class="card-body stack">
+    {% field form.to %}
+    {% field form.subject %}
+    {% field form.body %}
+    <div class="row small muted">{% icon 'paperclip' 14 %} Anhang: {{ doc.final_filename }}</div>
+  </div>
+  <div class="card-foot">
+    <a class="btn btn-ghost" href="{{ doc.order.get_absolute_url }}">Abbrechen</a>
+    <button class="btn btn-primary" type="submit" {% if not company.mail_configured %}disabled{% endif %}>{% icon 'send' 16 %} Senden</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ order.title }} · {{ order.number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'orders:list' %}">Aufträge</a> {% icon 'chevron-right' 12 %} {{ order.number }}</div>
+    <h1>{{ order.title }}</h1>
+    <div class="row wrap small muted" style="margin-top:4px;gap:14px">
+      {% if order.customer %}<a href="{{ order.customer.get_absolute_url }}" class="row" style="gap:5px;color:inherit">{% icon 'user' 14 %} {{ order.customer }}</a>{% endif %}
+      {% if order.event_date %}<span class="row" style="gap:5px">{% icon 'calendar' 14 %} {{ order.event_date|dlong }}</span>{% endif %}
+      {% if order.event_location %}<span class="row" style="gap:5px">{% icon 'map-pin' 14 %} {{ order.event_location }}</span>{% endif %}
+      {% include "orders/_status.html" %}
+    </div>
+  </div>
+  <div class="page-actions compact">
+    {% if order.items.exists %}
+    <form method="post" action="{% url 'orders:duplicate' order.pk %}" data-confirm="Einen neuen Auftrag mit gleichem Kunden und gleichen Positionen anlegen?">{% csrf_token %}
+      <button class="btn" type="submit">{% icon 'copy' 16 %} Kopieren</button></form>
+    {% endif %}
+    {% if is_empty_draft %}
+    <form method="post" action="{% url 'orders:delete_draft' order.pk %}" data-confirm="Diesen Auftrag löschen? Er enthält noch keine Dokumente oder Zahlungen.">{% csrf_token %}
+      <button class="btn btn-ghost btn-danger" type="submit">{% icon 'trash-2' 16 %} Entwurf löschen</button></form>
+    {% elif order.is_active and not order.handover.is_completed %}
+    <button class="btn btn-ghost btn-danger" type="button" data-open-modal="dlg-cancel">{% icon 'ban' 16 %} Stornieren</button>
+    {% endif %}
+  </div>
+</div>
+
+{% if order.status == "cancelled" %}
+<div class="alert alert-danger mb">{% icon 'ban' %}<div><strong>Storniert am {{ order.cancelled_at|d }}.</strong> {{ order.cancel_reason }}</div></div>
+{% endif %}
+
+{% for m in mail_issues %}
+<div class="alert {% if m.status == "failed" %}alert-danger{% else %}alert-info{% endif %} mb">{% icon "mail" %}<div style="flex:1">
+  {% if m.status == "failed" %}<strong>E-Mail nicht zugestellt:</strong> „{{ m.subject }}“ an {{ m.to }} – {{ m.error|truncatechars:160 }}
+  {% else %}<strong>E-Mail wird gesendet:</strong> „{{ m.subject }}“ an {{ m.to }}{% if m.attempts %} – der Mailserver hat nicht geantwortet, nächster Versuch {{ m.next_attempt_at|time:"H:i" }} Uhr{% endif %}{% endif %}</div>
+  {% if m.status == "failed" %}<form method="post" action="{% url "documents:email_retry" m.pk %}">{% csrf_token %}<button class="btn btn-sm" type="submit">{% icon "refresh-cw" 14 %} Erneut senden</button></form>{% endif %}
+</div>
+{% endfor %}
+
+<div class="order-layout">
+  {% include "orders/_stepper.html" %}
+
+  <div class="stack" style="min-width:0">
+    <div class="quick-facts">
+      <div><span>Summe</span><strong>{{ order.total|euro }}</strong></div>
+      {% if invoiced_total %}<div><span>Offen</span><strong class="{% if open_balance > 0 %}warning-text{% elif open_balance < 0 %}danger-text{% else %}success-text{% endif %}">{{ open_balance|euro }}</strong></div>{% endif %}
+      {% if deposit.required or deposit.received %}<div><span>Kaution verwahrt</span><strong>{{ deposit.held|euro }} <small class="subtle">von {{ deposit.agreed|euro }}</small></strong></div>{% endif %}
+      {% if order.handover_at %}<div><span>Übergabe</span><strong>{{ order.handover_at|dt }}</strong></div>{% endif %}
+    </div>
+    {% include "orders/_next.html" %}
+
+    {% if step.locked and not step.done %}
+    <div class="lock-note">{% icon 'lock' %}<div><strong>Dieser Schritt ist noch gesperrt.</strong>
+      <ul>{% for b in step.blockers %}<li>{{ b }}</li>{% endfor %}</ul></div></div>
+    {% endif %}
+
+    {% with tpl="orders/steps/"|add:selected|add:".html" %}{% include tpl %}{% endwith %}
+  </div>
+
+  <aside class="stack order-aside">
+    <div class="card">
+      <div class="card-head"><h2>Übersicht</h2></div>
+      <div class="card-body summary-list">
+        <div class="summary-row"><span class="k">Auftragssumme</span><span class="v summary-total">{{ order.total|euro }}</span></div>
+        {% if invoiced_total %}
+        <div class="summary-row"><span class="k">In Rechnung gestellt</span><span class="v">{{ invoiced_total|euro }}</span></div>
+        <div class="summary-row"><span class="k">Bezahlt</span><span class="v">{{ paid_total|euro }}</span></div>
+        <div class="summary-row"><span class="k">Offen</span><span class="v {% if open_balance > 0 %}warning-text strong{% elif open_balance < 0 %}danger-text{% else %}success-text{% endif %}">{{ open_balance|euro }}</span></div>
+        {% endif %}
+        {% if deposit.required or deposit.received %}
+        <hr style="margin:4px 0">
+        <div class="summary-row"><span class="k">Kaution vereinbart</span><span class="v">{{ deposit.agreed|euro }}</span></div>
+        <div class="summary-row"><span class="k">Kaution verwahrt</span><span class="v">{{ deposit.held|euro }}</span></div>
+        {% endif %}
+        <hr style="margin:4px 0">
+        <div class="summary-row"><span class="k">Übergabe</span><span class="v small">{{ order.handover_at|dt|default:"—" }}</span></div>
+        <div class="summary-row"><span class="k">Rückgabe</span><span class="v small">{{ order.return_at|dt|default:"—" }}</span></div>
+        <div class="summary-row"><span class="k">Art</span><span class="v small">{{ order.get_fulfillment_display }}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Dokumente</h2><span class="sub">{{ documents|length }}</span></div>
+      {% if documents %}
+      <div class="doc-list">
+        {% for doc in documents %}
+        <div class="doc-item{% if not doc.is_current %} superseded{% endif %}" style="padding:10px 16px">
+          <span class="doc-icon" style="width:30px;height:30px">{% icon 'file-text' 15 %}</span>
+          <a href="{% url 'documents:download' doc.pk %}" target="_blank" style="flex:1;min-width:0;color:inherit">
+            <span class="small strong" style="display:block">{{ doc.label }} {% if doc.version > 1 %}v{{ doc.version }}{% endif %}</span>
+            <span class="doc-meta">{{ doc.number }} · {{ doc.created_at|d }}</span></a>
+          {% if doc.is_signed %}<span title="Unterschrieben von {{ doc.signer_name }}">{% icon 'badge-check' 16 'success-text' %}</span>
+          {% elif doc.status == "superseded" %}<span class="tiny subtle">ersetzt</span>
+          {% elif doc.status == "void" %}<span class="tiny danger-text">storniert</span>
+          {% elif doc.requires_signature %}<span title="Unterschrift fehlt">{% icon 'pen-line' 16 'warning-text' %}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="card-body small subtle">Noch keine Dokumente.</div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Verlauf</h2></div>
+      <div class="card-body">
+        <ul class="timeline">{% for a in activities %}
+          <li><span class="dot"></span><div><div class="small">{{ a.message }}</div><div class="when">{{ a.created_at|dt }} · {{ a.user.display_name|default:"System" }}</div></div></li>
+        {% empty %}<li class="subtle small">Noch keine Einträge.</li>{% endfor %}</ul>
+      </div>
+    </div>
+  </aside>
+</div>
+
+{% if order.is_active %}
+<dialog class="modal" id="dlg-cancel">
+  <form method="post" action="{% url 'orders:cancel' order.pk %}">
+    {% csrf_token %}
+    <div class="modal-head"><h2>Auftrag stornieren</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+    <div class="modal-body stack">
+      <p class="muted small">Eine bestehende Rechnung wird automatisch durch eine Stornorechnung ausgeglichen. Bereits geleistete Zahlungen und eine Kaution können danach erstattet werden.</p>
+      {% if company.cancellation_terms %}<div class="alert alert-info small">{% icon 'info' 16 %}<div>{{ company.cancellation_terms }}</div></div>{% endif %}
+      <div class="field"><label for="c-reason">Grund der Stornierung<span class="req">*</span></label><input class="input" id="c-reason" name="reason" required maxlength="300"></div>
+      <div class="field"><label for="c-fee">Stornogebühr (brutto, optional)</label><div class="input-suffix"><input class="input" id="c-fee" name="fee" type="number" min="0" step="0.01"><span>€</span></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" data-close-modal>Abbrechen</button><button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger)" type="submit">Auftrag stornieren</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% endblock %}

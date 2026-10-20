@@ -1,0 +1,103 @@
+{% load static %}<!doctype html>
+<html lang="de" class="ui-{% if request.user.is_authenticated %}{{ request.user.ui_theme }}{% else %}warm{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="{% if request.user.is_authenticated and request.user.ui_theme == "klar" %}#ffffff{% else %}#f6f1e9{% endif %}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}mietly{% endblock %} · mietly</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="preload" href="{% static 'fonts/SourceSans3-Regular.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'fonts/SourceSans3-Semibold.woff2' %}" as="font" type="font/woff2" crossorigin>
+  {% if request.user.is_authenticated and request.user.ui_theme == "klar" %}<link rel="preload" href="{% static 'fonts/SourceSans3-Bold.woff2' %}" as="font" type="font/woff2" crossorigin>{% else %}<link rel="preload" href="{% static 'fonts/EBGaramond-Regular.woff2' %}" as="font" type="font/woff2" crossorigin>{% endif %}
+  <script src="{% static 'js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v={{ ASSET_VERSION }}">
+  {% if request.user.is_authenticated and request.user.ui_theme == "klar" %}<link rel="stylesheet" href="{% static 'css/klar.css' %}?v={{ ASSET_VERSION }}">{% endif %}
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'core:dashboard' %}">
+      <span class="brand-mark">m</span>
+      <span>
+        <span class="brand-name">mietly</span>
+        <span class="brand-sub" title="{{ company.name }}">{{ company.name }}</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="{% url 'core:dashboard' %}" class="{% nav_active '/' %}">{% icon 'layout-dashboard' %} Übersicht</a>
+      <a href="{% url 'orders:list' %}" class="{% nav_active '/auftraege' %}">{% icon 'clipboard-list' %} Aufträge</a>
+      <a href="{% url 'core:calendar' %}" class="{% nav_active '/kalender' %}">{% icon 'calendar-days' %} Kalender</a>
+      <a href="{% url 'customers:list' %}" class="{% nav_active '/kunden' %}">{% icon 'users' %} Kunden</a>
+      <div class="nav-label">Sortiment</div>
+      <a href="{% url 'catalog:article_list' %}" class="{% nav_active '/artikel' %}">{% icon 'flower-2' %} Artikel</a>
+      <a href="{% url 'catalog:package_list' %}" class="{% nav_active '/pakete' %}">{% icon 'package' %} Pakete</a>
+      <div class="nav-label">Verwaltung</div>
+      <a href="{% url 'billing:list' %}" class="{% nav_active '/rechnungen' %}">{% icon 'receipt-text' %} Rechnungen</a>
+      <a href="{% url 'documents:list' %}" class="{% nav_active '/dokumente' %}">{% icon 'files' %} Dokumente</a>
+      <a href="{% url 'core:settings' %}" class="{% nav_active '/einstellungen' %}">{% icon 'settings' %} Einstellungen</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-actions">
+        <button class="btn btn-ghost btn-sm" data-theme-toggle type="button">{% icon 'sun-moon' 16 %} Hell/Dunkel</button>
+        <form method="post" action="{% url 'core:logout' %}">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">{% icon 'log-out' 16 %} Abmelden</button></form>
+      </div>
+      <a class="user-chip" href="{% url 'core:profile' %}">
+        <span class="avatar accent">{{ request.user.initials }}</span>
+        <span class="stack-sm" style="gap:0;min-width:0">
+          <span class="strong small">{{ request.user.display_name }}</span>
+          <span class="tiny subtle">{{ request.user.get_role_display }}</span>
+        </span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-icon menu-toggle" data-nav-toggle aria-label="Menü">{% icon 'menu' %}</button>
+      <a class="topbar-brand" href="{% url 'core:dashboard' %}"><span class="brand-mark">m</span><span class="brand-name">mietly</span></a>
+      <button class="search-trigger" data-open-search type="button">
+        {% icon 'search' 16 %} <span>Kunden, Feiern oder Artikel suchen …</span>
+      </button>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-icon search-icon" data-open-search type="button" aria-label="Suchen">{% icon 'search' %}</button>
+        <a class="btn btn-primary desktop-only" href="{% url 'orders:create' %}">{% icon 'plus' 16 %} <span class="hide-sm">Neuer Auftrag</span></a>
+        <button class="btn btn-ghost btn-icon desktop-only" data-theme-toggle type="button" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten">{% icon 'sun-moon' %}</button>
+        <form method="post" action="{% url 'core:logout' %}" class="desktop-only">{% csrf_token %}
+          <button class="btn btn-ghost btn-icon" title="Abmelden" aria-label="Abmelden">{% icon 'log-out' %}</button>
+        </form>
+      </div>
+    </header>
+
+    <main class="content" id="inhalt" tabindex="-1">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Hauptnavigation">
+  <a href="{% url 'core:dashboard' %}" class="{% nav_active '/' %}">{% icon 'layout-dashboard' 22 %}<span>Übersicht</span></a>
+  <a href="{% url 'orders:list' %}" class="{% nav_active '/auftraege' %}">{% icon 'clipboard-list' 22 %}<span>Aufträge</span></a>
+  <a href="{% url 'orders:create' %}" class="bottom-nav-add" aria-label="Neuer Auftrag">{% icon 'plus' 26 %}</a>
+  <a href="{% url 'core:calendar' %}" class="{% nav_active '/kalender' %}">{% icon 'calendar-days' 22 %}<span>Kalender</span></a>
+  <button type="button" data-nav-toggle>{% icon 'menu' 22 %}<span>Mehr</span></button>
+</nav>
+
+<div class="toasts" id="toasts">{% include "components/messages.html" %}</div>
+
+<div class="palette" id="palette" data-url="{% url 'core:search' %}" role="dialog" aria-label="Suche">
+  <div class="palette-box">
+    <div class="palette-input">{% icon 'search' 18 'subtle' %}<input type="text" placeholder="Wonach suchen Sie?" autocomplete="off"></div>
+    <div class="palette-results"></div>
+  </div>
+</div>
+
+<script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+<script src="{% static 'js/app.js' %}?v={{ ASSET_VERSION }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

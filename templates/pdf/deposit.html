@@ -1,0 +1,30 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Abrechnung</td><td>{{ d.number }}</td></tr>
+<tr><td>Datum</td><td>{{ d.date }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Kautionsabrechnung</h1><div class="subtitle">{{ d.order.event }}</div></div>
+<table class="items">
+  <thead><tr><th style="width:24mm">Datum</th><th>Vorgang</th><th>Zahlungsart</th><th>Begründung</th><th class="total">Betrag</th></tr></thead>
+  <tbody>{% for t in d.transactions %}<tr><td>{{ t.date }}</td><td>{{ t.kind }}</td><td>{{ t.method }}</td><td class="small">{{ t.reason }}</td><td class="total">{{ t.amount }}</td></tr>{% endfor %}</tbody>
+</table>
+<table class="totals">
+  <tr><td>Vereinbarte Kaution</td><td>{{ d.agreed }}</td></tr>
+  <tr><td>Erhalten</td><td>{{ d.received }}</td></tr>
+  <tr><td>Einbehalten</td><td>{{ d.retained }}</td></tr>
+  <tr class="grand"><td>Zurückgezahlt</td><td>{{ d.refunded }}</td></tr>
+</table>
+<p class="small muted mt">Einbehaltene Beträge betreffen die im Rücknahmeprotokoll dokumentierten Schäden bzw. Fehlmengen.</p>
+
+{% if d.followups %}
+<h2 class="mt">Weitere Forderungen</h2>
+<p>Kosten, die über die Kaution hinausgehen, stellen wir gesondert in Rechnung:</p>
+<table class="items">
+  <thead><tr><th>Rechnung</th><th>Art</th><th>Zahlbar bis</th><th class="total">Betrag</th></tr></thead>
+  <tbody>{% for f in d.followups %}<tr><td>{{ f.number }}</td><td>{{ f.title }}</td><td>{{ f.due }}</td><td class="total">{{ f.amount }}</td></tr>{% endfor %}</tbody>
+</table>
+{% if d.open_balance %}<table class="totals"><tr class="grand"><td>Noch zu zahlen</td><td>{{ d.open_balance }}</td></tr></table>{% endif %}
+{% endif %}
+{% if d.summary %}<div class="note-box keep"><p style="margin:0">{{ d.summary }}</p></div>{% endif %}
+{% endblock %}

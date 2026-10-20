@@ -1,0 +1,39 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Cloud-Ablage{% endblock %}
+{% block settings_content %}
+<div class="alert alert-info">{% icon 'info' %}<div>Auf Wunsch legt mietly jede Nacht eine Kopie Ihrer Dokumente und eine verschlüsselte Datensicherung in Ihrer eigenen Cloud ab – zum Beispiel in einer Nextcloud. Ihre Daten bleiben dabei maßgeblich auf diesem Server.</div></div>
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  <div class="form-section">
+    <div class="form-grid">
+      {% field form.webdav_enabled "col-6" %}
+      {% field form.webdav_url "col-6" %}
+      {% field form.webdav_user "col-3" %}
+      {% field form.webdav_password "col-3" %}
+      {% field form.webdav_folder "col-3" %}
+    </div>
+    {% if company.webdav_password_enc %}<div class="small subtle mt-sm">{% icon 'lock' 14 %} Ein Passwort ist gespeichert.</div>{% endif %}
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Was wird übertragen?</div>
+    <div class="form-grid">
+      {% field form.webdav_sync_documents "col-6" %}
+      {% field form.webdav_sync_backups "col-6" %}
+      {% field form.backup_passphrase "col-4" %}
+    </div>
+    {% if company.backup_passphrase_enc %}<div class="small subtle mt-sm">{% icon 'lock' 14 %} Ein Kennwort ist gespeichert.</div>{% endif %}
+    <div class="small subtle mt-sm">Wie eine verschlüsselte Sicherung wieder geöffnet wird, steht in der Anleitung (README).</div>
+  </div>
+  <div class="card-foot">
+    <button class="btn" name="test" value="1" type="submit" formnovalidate>Verbindung testen</button>
+    <button class="btn" name="sync" value="1" type="submit" formnovalidate {% if not company.webdav_enabled %}disabled{% endif %}>Jetzt übertragen</button>
+    <button class="btn btn-primary" type="submit">Speichern</button>
+  </div>
+</form>
+{% if company.webdav_last_sync %}
+<div class="card card-body row-between">
+  <div><div class="label">Letzte Synchronisierung</div><div>{{ company.webdav_last_sync|dt }}</div></div>
+  <div>{% if company.webdav_last_status|slice:":2" == "OK" %}{% status_badge company.webdav_last_status "success" %}{% else %}{% status_badge company.webdav_last_status "danger" %}{% endif %}</div>
+</div>
+{% endif %}
+{% endblock %}

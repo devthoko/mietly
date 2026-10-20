@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Neuer Auftrag{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{% url 'orders:list' %}">Aufträge</a></div><h1>Neuer Auftrag – für wen?</h1></div>
+</div>
+<div class="grid grid-2" style="align-items:start">
+  <div class="card">
+    <div class="card-head"><h2>{% icon 'search' 18 %} Bestehenden Kunden wählen</h2></div>
+    <div class="card-body">
+      <div class="input-group">{% icon 'search' 16 %}
+        <input class="input" type="search" name="q" value="{{ q }}" placeholder="Name, E-Mail, Telefon oder Ort" autofocus autocomplete="off"
+               hx-get="{% url 'orders:create' %}" hx-trigger="input changed delay:200ms, search" hx-target="#customer-results">
+      </div>
+    </div>
+    <div id="customer-results">{% include "orders/_customer_results.html" %}</div>
+  </div>
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="new_customer" value="1">
+    <div class="card-head"><h2>{% icon 'user-plus' 18 %} Neuen Kunden anlegen</h2></div>
+    {% include "customers/_fields.html" %}
+    <div class="card-foot"><button class="btn btn-primary" type="submit">Kunde anlegen & weiter {% icon 'arrow-right' 16 %}</button></div>
+  </form>
+</div>
+{% endblock %}

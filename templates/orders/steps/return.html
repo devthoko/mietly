@@ -1,0 +1,68 @@
+{% if step.locked %}
+<div class="card"><div class="card-head"><h2>{% icon 'undo-2' 18 %} Rücknahme</h2></div>
+  <div class="card-body small muted">Die Rücknahme wird nach abgeschlossener Übergabe erfasst. Geplante Rückgabe: {{ order.return_at|dtlong|default:"—" }}.</div></div>
+
+{% elif not record %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'undo-2' 18 %} Rücknahme</h2></div>
+  <div class="card-body stack">
+    <p class="muted">Geplante Rückgabe: <strong>{{ order.return_at|dtlong }}</strong> ({{ order.return_at|relday }}).</p>
+    <p class="small muted">Die Rücknahmeliste wird mit den tatsächlich übergebenen Mengen vorbereitet. Sie erfassen zurückgegebene und beschädigte Stückzahlen – Fehlmengen und Schäden werden automatisch als Posten mit dem Wiederbeschaffungswert angelegt und können angepasst werden. Eine Unterschrift ist nicht erforderlich.</p>
+    {% if order.is_active %}<form method="post" action="{% url 'orders:start_return' order.pk %}">{% csrf_token %}<button class="btn btn-primary btn-lg" type="submit">{% icon 'play' 18 %} Rücknahme starten</button></form>{% endif %}
+  </div>
+</div>
+
+{% elif record.is_completed %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'undo-2' 18 %} Rücknahme</h2>{% status_badge "Abgeschlossen" "success" %}</div>
+  <div class="card-body"><dl class="dl">
+    <dt>Zurückgenommen am</dt><dd>{{ record.performed_at|dtlong }}</dd>
+    <dt>Zurückgegeben von</dt><dd>{{ record.returned_by_name|default:"—" }}</dd>
+    {% if record.notes %}<dt>Bemerkungen</dt><dd>{{ record.notes|nl2br_safe }}</dd>{% endif %}
+  </dl></div>
+  <div class="table-wrap"><table class="table compact">
+    <thead><tr><th>Artikel</th><th class="right">Erwartet</th><th class="right">Zurück</th><th class="right">Beschädigt</th><th class="right">Fehlt</th></tr></thead>
+    <tbody>{% for i in return_items %}<tr><td>{{ i.article.name }}{% if i.note %}<div class="cell-sub">{{ i.note }}</div>{% endif %}</td><td class="right num">{{ i.expected_qty }}</td><td class="right num">{{ i.returned_qty }}</td>
+      <td class="right num {% if i.damaged_qty %}warning-text strong{% endif %}">{{ i.damaged_qty }}</td><td class="right num {% if i.missing_qty %}danger-text strong{% endif %}">{{ i.missing_qty }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% if return_doc %}{% include "orders/_doc_card.html" with doc=return_doc %}{% endif %}
+</div>
+{% include "orders/_photos.html" with editable=False stage="return" %}
+
+{% else %}
+<form method="post" action="{% url 'orders:save_return' order.pk %}" class="card" novalidate data-guard>
+  {% csrf_token %}
+  <div class="card-head"><h2>{% icon 'undo-2' 18 %} Rücknahme erfassen</h2>{% status_badge "In Arbeit" "info" %}</div>
+  <div class="card-body"><div class="form-grid">
+    {% field return_form.performed_at "col-2" %}
+    {% field return_form.returned_by_name "col-4" %}
+  </div></div>
+  <div style="border-top:1px solid var(--border)">
+    {% for item in return_items %}
+    <div class="check-row ret">
+      {% if item.article.image %}<img class="thumb" src="{{ item.article.image.url }}" alt="">{% else %}<span class="thumb">{% icon 'image' 16 %}</span>{% endif %}
+      <div style="min-width:0"><div class="strong">{{ item.article.name }}</div><div class="small subtle">übergeben: {{ item.expected_qty }}{% if item.missing_qty %} · <span class="danger-text">fehlt: {{ item.missing_qty }}</span>{% endif %}</div></div>
+      <div class="field"><label class="tiny">Zurück</label><div class="num-stepper"><button type="button" class="btn btn-sm btn-icon" data-step="-1" aria-label="weniger">−</button><input class="input input-sm qty-input" type="number" min="0" max="{{ item.expected_qty }}" name="item-{{ item.pk }}-returned_qty" value="{{ item.returned_qty }}"><button type="button" class="btn btn-sm btn-icon" data-step="1" aria-label="mehr">+</button></div></div>
+      <div class="field"><label class="tiny">Beschädigt</label><div class="num-stepper"><button type="button" class="btn btn-sm btn-icon" data-step="-1" aria-label="weniger">−</button><input class="input input-sm qty-input" type="number" min="0" max="{{ item.expected_qty }}" name="item-{{ item.pk }}-damaged_qty" value="{{ item.damaged_qty }}"><button type="button" class="btn btn-sm btn-icon" data-step="1" aria-label="mehr">+</button></div></div>
+      <div class="seg">
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="good" {% if item.condition == "good" %}checked{% endif %}>gut</label>
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="used" {% if item.condition == "used" %}checked{% endif %}>Spuren</label>
+        <label><input type="radio" name="item-{{ item.pk }}-condition" value="damaged" {% if item.condition == "damaged" %}checked{% endif %}>defekt</label>
+      </div>
+      <details class="extra-details"{% if item.note %} open{% endif %}>
+        <summary>{% icon 'pencil' 14 %} Bemerkung{% if item.note %} · erfasst{% endif %}</summary>
+        <div class="extra"><input class="input input-sm" name="item-{{ item.pk }}-note" value="{{ item.note }}" placeholder="Bemerkung, z. B. Art des Schadens"></div>
+      </details>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="card-body" style="border-top:1px solid var(--border)">{% field return_form.notes %}</div>
+  <div class="card-foot sticky-actions">
+    <button class="btn" type="submit">Speichern & Schäden übernehmen</button>
+    <button class="btn btn-primary" type="submit" name="complete" value="1" data-confirm="Rücknahme abschließen? Fehlmengen und ausgemusterte Artikel werden aus dem Bestand gebucht und das Rücknahmeprotokoll wird erstellt.">{% icon 'circle-check' 16 %} Rücknahme abschließen</button>
+  </div>
+</form>
+
+{% include "orders/_damages.html" with editable=True next="return" %}
+{% include "orders/_photos.html" with editable=True stage="return" %}
+{% endif %}

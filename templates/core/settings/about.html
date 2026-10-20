@@ -1,0 +1,18 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Über mietly{% endblock %}
+{% block settings_content %}
+<div class="card card-body">
+  <div class="row" style="gap:16px;margin-bottom:12px"><span class="brand-mark" style="width:52px;height:52px;font-size:28px">m</span>
+    <div><div class="brand-name" style="font-size:30px">mietly</div><div class="muted">Ihr Helfer für den Event- und Dekorationsverleih · Version {{ MIETLY_VERSION }}</div></div></div>
+  <p class="muted" style="margin:8px 0 0">Alle Daten liegen ausschließlich auf Ihrem eigenen Server. Jede Nacht wird automatisch eine Datensicherung angelegt.</p>
+</div>
+<div class="card card-body stack-sm">
+  <h2>Hilfe & Tipps</h2>
+  <ul class="muted" style="margin:0;padding-left:18px;line-height:1.8">
+    <li>Mit <strong>Strg + K</strong> (oder der Lupe) finden Sie jeden Kunden, Auftrag und Artikel.</li>
+    <li>Jeder Auftrag zeigt unter „Als Nächstes“, was zu tun ist – und warum ein Schritt gerade noch gesperrt ist.</li>
+    <li>Auf dem Tablet können Kundinnen und Kunden Angebote, Verträge und Übergaben direkt mit dem Finger unterschreiben.</li>
+    <li>Die ausführliche Anleitung für Installation, Updates und Datensicherung finden Sie in der Datei <em>README</em> auf dem Server.</li>
+  </ul>
+</div>
+{% endblock %}

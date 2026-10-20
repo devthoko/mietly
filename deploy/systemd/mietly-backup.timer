@@ -1,0 +1,10 @@
+[Unit]
+Description=mietly – Backup jede Nacht um 2:30 Uhr
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

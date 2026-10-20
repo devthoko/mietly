@@ -1,0 +1,21 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}Vorlagen{% endblock %}
+{% block settings_content %}
+<div class="alert alert-info">{% icon 'scale' %}<div>Rechtlich relevante Texte (Mietvertrag, Mietbedingungen, Widerrufsbelehrung) sind sorgfältig formulierte Ausgangspunkte. Lassen Sie sie bitte für Ihren Betrieb rechtlich prüfen. Jede Änderung wird als neue Version gespeichert; bereits erstellte Dokumente behalten die damals gültige Fassung.</div></div>
+{% for title, items in groups %}
+<div class="card">
+  <div class="card-head"><h2>{{ title }}</h2></div>
+  <div class="doc-list">
+    {% for t in items %}
+    <a class="doc-item" href="{% url 'core:settings_template_edit' t.key %}" style="color:inherit;text-decoration:none">
+      <span class="doc-icon">{% if t.key|slice:":5" == "mail_" %}{% icon 'mail' 18 %}{% else %}{% icon 'file-text' 18 %}{% endif %}</span>
+      <span style="flex:1;min-width:0"><span class="strong">{{ t.get_key_display }}</span>
+        <span class="doc-meta" style="display:block">{% if t.subject %}{{ t.subject|truncatechars:70 }}{% else %}{{ t.body|truncatechars:90 }}{% endif %}</span></span>
+      <span class="badge plain">Version {{ t.version }}</span>
+      {% icon 'chevron-right' 16 'subtle' %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

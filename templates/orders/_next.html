@@ -1,0 +1,24 @@
+<div id="next-card"{% if oob %} hx-swap-oob="true"{% endif %}>
+{% if order.is_active or order.status == "completed" %}
+<div class="card accent next-card">
+  <span class="next-icon">{% if order.status == "completed" %}{% icon 'party-popper' 20 %}{% else %}{% icon 'arrow-right' 20 %}{% endif %}</span>
+  <div style="min-width:0">
+    <div class="next-label">{% if order.status == "completed" %}Erledigt{% else %}Als Nächstes{% endif %}</div>
+    <div class="next-title">{{ state.next_action }}</div>
+    <div class="next-hint">{{ state.next_hint }}</div>
+  </div>
+  {% if order.is_active %}
+  <div class="next-actions">
+    {% if next_doc %}
+      <a class="btn btn-primary" href="{% url 'documents:sign' next_doc.pk %}">{% icon 'signature' 16 %} Jetzt unterschreiben</a>
+      {% if next_doc.kind != "handover" %}<a class="btn" href="{% url 'documents:email' next_doc.pk %}">{% icon 'send' 16 %} Per E-Mail senden</a>{% endif %}
+    {% elif selected != state.current.key %}
+      <a class="btn btn-primary" href="?schritt={{ state.current.key }}">Weiter: {{ state.current.title }} {% icon 'arrow-right' 16 %}</a>
+    {% elif state.next_action == "Angebot erstellen" %}
+      <a class="btn btn-primary" href="#angebot">{% icon 'arrow-down' 16 %} Zum Angebot</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+</div>

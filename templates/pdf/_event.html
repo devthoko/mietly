@@ -1,0 +1,7 @@
+<div class="event-box">
+  <div><span>Veranstaltung</span>{{ d.order.event }}{% if d.order.event_date %}, {{ d.order.event_date }}{% endif %}</div>
+  {% if d.order.location %}<div><span>Ort</span>{{ d.order.location }}</div>{% endif %}
+  <div><span>{{ d.order.fulfillment }}</span>{{ d.order.handover }}</div>
+  <div><span>Rückgabe</span>{{ d.order.return }}</div>
+</div>
+{% if d.order.delivery and d.order.delivery_address %}<p class="small"><span class="muted">Lieferadresse:</span> {{ d.order.delivery_address|linebreaksbr }}</p>{% endif %}

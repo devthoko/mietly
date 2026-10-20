@@ -1,0 +1,24 @@
+<table class="items">
+  <thead><tr><th class="pos">Pos.</th><th>Bezeichnung</th><th class="qty">Menge</th><th class="price">Einzelpreis</th>{% if show_discount %}<th class="disc">Rabatt</th>{% endif %}<th class="total">Gesamt</th></tr></thead>
+  <tbody>
+  {% for i in d.items %}
+    <tr>
+      <td class="pos">{{ i.pos }}</td>
+      <td class="desc">{{ i.description }}{% if i.detail %}<div class="detail">{{ i.detail }}</div>{% endif %}{% if i.contents %}<div class="contents">{{ i.contents|join:", " }}</div>{% endif %}</td>
+      <td class="qty">{{ i.quantity }}</td>
+      <td class="price">{{ i.unit_price }}</td>
+      {% if show_discount %}<td class="disc">{{ i.discount }}</td>{% endif %}
+      <td class="total">{{ i.total }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<table class="totals">
+  {% if d.company.small_business or d.small_business %}
+  <tr class="grand"><td>Gesamtbetrag</td><td>{{ d.totals.gross }}</td></tr>
+  {% else %}
+  <tr class="grand"><td>Gesamtbetrag{% if d.totals.breakdown %} inkl. USt{% endif %}</td><td>{{ d.totals.gross }}</td></tr>
+  <tr class="muted"><td>Nettobetrag (Entgelt)</td><td>{{ d.totals.net }}</td></tr>
+  {% for b in d.totals.breakdown %}<tr class="muted"><td>enthaltene USt {{ b.rate }} auf {{ b.net }}</td><td>{{ b.vat }}</td></tr>{% endfor %}
+  {% endif %}
+</table>

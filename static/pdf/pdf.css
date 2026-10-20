@@ -1,0 +1,110 @@
+/* mietly – Gestaltung der PDF-Dokumente (A4, angelehnt an DIN 5008) */
+
+@page {
+  size: A4;
+  margin: 18mm 18mm 30mm 22mm;
+  @bottom-center {
+    content: element(footer);
+    width: 100%;
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+}
+@page :first { margin-top: 12mm; }
+
+* { box-sizing: border-box; }
+html { font-family: "Source Sans 3", sans-serif; font-size: 9.6pt; line-height: 1.45; color: #1d1f1e; }
+body { margin: 0; }
+h1 { font-variant-numeric: lining-nums; font-family: "EB Garamond", serif; font-size: 24pt; font-weight: 400; margin: 0 0 1mm; }
+h2 { font-family: "EB Garamond", serif; font-size: 14pt; font-weight: 400; margin: 7mm 0 2mm; }
+h3 { font-size: 9.5pt; font-weight: 600; margin: 4mm 0 1.5mm; }
+p { margin: 0 0 2.2mm; }
+ul { margin: 0 0 2.2mm; padding-left: 4.5mm; }
+li { margin-bottom: 0.8mm; }
+.muted { color: #6b706e; }
+.small { font-size: 8pt; }
+.right { text-align: right; }
+.nowrap { white-space: nowrap; }
+.strong { font-weight: 600; }
+.accent { color: #5f7a5b; }
+.mt { margin-top: 5mm; }
+
+/* Kopf */
+.head { display: flex; justify-content: space-between; align-items: flex-start; height: 26mm; }
+.logo img { max-height: 18mm; max-width: 70mm; }
+.logo .name { font-family: "EB Garamond", serif; font-size: 22pt; font-weight: 400; color: #5f7a5b; }
+.company { text-align: right; font-size: 8pt; color: #55595a; line-height: 1.5; }
+
+/* Anschriftfeld und Infoblock */
+.address-row { display: flex; justify-content: space-between; margin-top: 8mm; min-height: 40mm; }
+.address { width: 85mm; }
+.sender-line { font-size: 6.5pt; color: #8a8e8d; border-bottom: 0.3pt solid #c9c5be; padding-bottom: 1mm; margin-bottom: 2.5mm; }
+.recipient { font-size: 10pt; line-height: 1.45; }
+.infoblock { width: 68mm; font-size: 8.3pt; }
+.infoblock table { width: 100%; border-collapse: collapse; }
+.infoblock td { padding: 0.6mm 0; vertical-align: top; }
+.infoblock td:first-child { color: #6b706e; padding-right: 3mm; white-space: nowrap; }
+.infoblock td:last-child { text-align: right; font-weight: 500; }
+
+.title-row { margin: 6mm 0 4mm; }
+.title-row .subtitle { font-family: "EB Garamond", serif; font-style: italic; color: #8a6d62; font-size: 12pt; }
+
+.event-box { background: #f6f1e9; border-radius: 2mm; padding: 3mm 4mm; margin: 3mm 0 5mm; display: flex; gap: 5mm; font-size: 8.3pt; }
+.event-box div { flex: 1 1 0; min-width: 0; }
+.event-box div span { display: block; color: #6b706e; font-size: 7.3pt; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5mm; }
+
+/* Positionstabelle */
+table.items { width: 100%; border-collapse: collapse; margin: 2mm 0 0; }
+table.items thead th { font-size: 7.3pt; font-weight: 600; color: #6b706e; text-transform: uppercase; letter-spacing: 0.04em; text-align: left; padding: 2mm 1.5mm; border-bottom: 0.8pt solid #1d1f1e; }
+table.items tbody td { padding: 2.2mm 1.5mm; border-bottom: 0.3pt solid #dedad3; vertical-align: top; }
+table.items tbody tr { page-break-inside: avoid; }
+table.items .pos { width: 8mm; color: #8a8e8d; }
+table.items .qty { width: 14mm; text-align: right; }
+table.items .price { width: 24mm; text-align: right; white-space: nowrap; }
+table.items .disc { width: 14mm; text-align: right; }
+table.items .total { width: 26mm; text-align: right; white-space: nowrap; font-weight: 500; }
+table.items .desc .detail { color: #6b706e; font-size: 8pt; }
+table.items .desc .contents { color: #6b706e; font-size: 7.6pt; margin-top: 0.5mm; }
+
+.totals { width: 82mm; margin-left: auto; margin-top: 3mm; border-collapse: collapse; page-break-inside: avoid; }
+.totals td { padding: 1.2mm 1.5mm; }
+.totals td:last-child { text-align: right; white-space: nowrap; }
+.totals .grand td { font-variant-numeric: lining-nums; font-family: "EB Garamond", serif; font-size: 14pt; font-weight: 700; border-top: 0.8pt solid #1d1f1e; padding-top: 2mm; }
+.totals .muted td { color: #6b706e; font-size: 8pt; }
+
+.note-box { border-left: 2pt solid #5f7a5b; padding: 1mm 0 1mm 3.5mm; margin: 5mm 0; }
+.legal { font-size: 8pt; color: #55595a; }
+.legal h3 { font-size: 8.8pt; color: #1d1f1e; }
+.contract-text { font-size: 8.8pt; text-align: justify; hyphens: auto; }
+.contract-text h3 { margin-top: 4mm; }
+.page-break { page-break-before: always; }
+.keep { page-break-inside: avoid; }
+
+/* Unterschriften */
+.signatures { display: flex; gap: 12mm; margin-top: 12mm; page-break-inside: avoid; }
+.sigbox { flex: 1; }
+.sigbox .line { border-top: 0.6pt solid #1d1f1e; padding-top: 1.5mm; font-size: 7.6pt; color: #55595a; }
+.sigbox .space { height: 18mm; display: flex; align-items: flex-end; }
+.sigbox .space img { max-height: 17mm; max-width: 70mm; }
+.sigbox .signed-meta { font-size: 7pt; color: #6b706e; margin-top: 1mm; line-height: 1.4; }
+.verify { margin-top: 6mm; border: 0.4pt solid #c9c5be; border-radius: 1.5mm; padding: 2.5mm 3mm; font-size: 7pt; color: #55595a; page-break-inside: avoid; }
+.verify .hash { font-family: monospace; font-size: 6.5pt; word-break: break-all; }
+
+/* Packliste / Protokolle */
+.checkbox { display: inline-block; width: 3.6mm; height: 3.6mm; border: 0.7pt solid #1d1f1e; border-radius: 0.6mm; vertical-align: -0.6mm; }
+table.items img.thumb { width: 11mm; height: 11mm; object-fit: cover; border-radius: 1mm; }
+.cat-head td { background: #f6f1e9; font-weight: 600; font-size: 8pt; padding: 1.5mm !important; border-bottom: none !important; }
+.photos { display: flex; flex-wrap: wrap; gap: 3mm; margin-top: 2mm; }
+.photos figure { margin: 0; width: 40mm; page-break-inside: avoid; }
+.photos img { width: 40mm; height: 30mm; object-fit: cover; border-radius: 1mm; }
+.photos figcaption { font-size: 6.8pt; color: #6b706e; margin-top: 0.8mm; }
+.warn { color: #a3401f; font-weight: 600; }
+.badge { display: inline-block; padding: 0.3mm 1.6mm; border-radius: 3mm; background: #eef0ee; font-size: 7pt; }
+
+/* Fußzeile */
+.footer { position: running(footer); font-size: 6.6pt; color: #8a8e8d; display: flex; gap: 4mm; border-top: 0.3pt solid #dedad3; padding-top: 2mm; width: 100%; text-align: left; }
+.footer div { flex: 1 1 0; line-height: 1.45; }
+.footer .bank { flex: 1.35 1 0; }
+.footer .pages { flex: 0 0 16mm; text-align: right; }
+.footer .pages::after { content: "Seite " counter(page) "/" counter(pages); }
+.footer strong { color: #55595a; font-weight: 600; }

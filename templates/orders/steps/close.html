@@ -1,0 +1,125 @@
+{% if order.status == "cancelled" %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'ban' 18 %} Abwicklung der Stornierung</h2></div>
+  <div class="card-body stack">
+    <div class="summary-list">
+      <div class="summary-row"><span class="k">In Rechnung gestellt (nach Storno)</span><span class="v">{{ invoiced_total|euro }}</span></div>
+      <div class="summary-row"><span class="k">Gezahlt</span><span class="v">{{ paid_total|euro }}</span></div>
+      <div class="summary-row"><span class="k">{% if open_balance < 0 %}Guthaben des Kunden{% else %}Offen{% endif %}</span><span class="v strong">{{ open_balance|euro }}</span></div>
+      <div class="summary-row"><span class="k">Verwahrte Kaution</span><span class="v strong">{{ deposit.held|euro }}</span></div>
+    </div>
+  </div>
+  {% if open_balance < 0 %}
+  <form method="post" action="{% url 'orders:add_refund' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap">{% csrf_token %}
+    <div class="field" style="width:130px"><label>Erstattung</label><div class="input-suffix">{{ refund_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ refund_form.paid_on }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ refund_form.method }}</div>
+    <button class="btn btn-primary" type="submit">Erstattung erfassen</button>
+  </form>
+  {% elif open_balance > 0 %}
+  <form method="post" action="{% url 'orders:add_payment' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap">{% csrf_token %}<input type="hidden" name="next" value="close">
+    <div class="field" style="width:130px"><label>Zahlung</label><div class="input-suffix">{{ payment_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ payment_form.paid_on }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ payment_form.method }}</div>
+    <button class="btn btn-primary" type="submit">Zahlung erfassen</button>
+  </form>
+  {% endif %}
+  {% if deposit.held > 0 %}
+  <form method="post" action="{% url 'orders:refund_deposit_cancelled' order.pk %}" class="card-foot" style="justify-content:flex-start">{% csrf_token %}
+    <select class="input" name="method" style="width:auto">{% for v, l in refund_methods %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select>
+    <button class="btn" type="submit">Kaution ({{ deposit.held|euro }}) zurückzahlen</button>
+  </form>
+  {% endif %}
+</div>
+
+{% elif step.locked %}
+<div class="card"><div class="card-head"><h2>{% icon 'piggy-bank' 18 %} Kaution & Abschluss</h2></div>
+  <div class="card-body small muted">Nach der Rücknahme werden hier Schäden abgerechnet, die Kaution erstattet oder einbehalten und der Auftrag abgeschlossen.</div></div>
+
+{% else %}
+{% if open_damages or deposit.held > 0 %}
+<form method="post" action="{% url 'orders:settle' order.pk %}" class="card">
+  {% csrf_token %}
+  <div class="card-head"><h2>{% icon 'scale' 18 %} Abrechnung</h2><span class="sub">verwahrte Kaution {{ deposit.held|euro }}</span></div>
+  {% if open_damages %}
+  <div class="doc-list">
+    {% for dm in open_damages %}
+    <div class="doc-item">
+      <div style="flex:1;min-width:0"><div class="strong small">{{ dm.description }}</div><div class="doc-meta">{{ dm.get_kind_display }}</div></div>
+      <span class="num strong" style="width:100px;text-align:right">{{ dm.amount|euro }}</span>
+      <select class="input input-sm" name="damage-{{ dm.pk }}" style="width:230px">
+        {% if deposit.held > 0 %}<option value="deposit" selected>Mit Kaution verrechnen</option>{% endif %}
+        <option value="invoice" {% if deposit.held <= 0 %}selected{% endif %}>Nachberechnen (Rechnung)</option>
+        <option value="waived">Erlassen (Kulanz)</option>
+      </select>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-body small muted">Es wurden keine Schäden oder Fehlmengen erfasst – die Kaution kann vollständig zurückgezahlt werden.</div>
+  {% endif %}
+  <div class="card-foot" style="justify-content:space-between;align-items:center">
+    {% if deposit.held > 0 %}
+    <div class="row"><label class="label" for="refund-method">Rückzahlung der Kaution per</label>
+      <select class="input input-sm" id="refund-method" name="refund_method" style="width:auto">{% for v, l in refund_methods %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+    {% else %}<span></span>{% endif %}
+    <button class="btn btn-primary" type="submit" data-confirm="Abrechnung jetzt durchführen? Einbehalte, Nachberechnung und Rückzahlung werden verbindlich gebucht.">{% icon 'scale' 16 %} Abrechnen</button>
+  </div>
+</form>
+{% include "orders/_damages.html" with editable=True next="close" damages=open_damages %}
+{% endif %}
+
+{% if deposit_transactions or deposit_doc %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'piggy-bank' 18 %} Kaution</h2><span class="sub">vereinbart {{ deposit.agreed|euro }}</span></div>
+  <div class="table-wrap"><table class="table compact">
+    <tbody>{% for t in deposit_transactions %}<tr><td>{{ t.date|d }}</td><td>{{ t.get_kind_display }}</td><td>{{ t.get_method_display }}</td><td class="small subtle">{{ t.reason }}</td><td class="right num">{{ t.amount|euro }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% if deposit_doc %}{% include "orders/_doc_card.html" with doc=deposit_doc %}{% endif %}
+</div>
+{% endif %}
+
+{% if invoices|length > 1 or open_balance != 0 %}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'receipt-text' 18 %} Offene Beträge</h2><span class="sub">in Rechnung {{ invoiced_total|euro }} · bezahlt {{ paid_total|euro }}</span></div>
+  <div class="doc-list">
+    {% for inv in invoices %}{% if inv.kind != "invoice" %}
+    <div class="doc-item"><span class="doc-icon">{% icon 'receipt-text' 16 %}</span>
+      <div style="flex:1"><div class="strong small">{{ inv.get_kind_display }} {{ inv.number }}</div><div class="doc-meta">{{ inv.issue_date|d }}</div></div>
+      <span class="num strong">{{ inv.total_gross|euro }}</span>
+      {% if inv.document %}<a class="btn btn-sm" href="{% url 'documents:download' inv.document.pk %}" target="_blank">{% icon 'eye' 14 %}</a><a class="btn btn-sm" href="{% url 'documents:email' inv.document.pk %}">{% icon 'mail' 14 %}</a>{% include "documents/_print_button.html" with doc=inv.document icon_only=True %}{% endif %}
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+  {% if open_balance > 0 %}
+  <form method="post" action="{% url 'orders:add_payment' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap">{% csrf_token %}<input type="hidden" name="next" value="close">
+    <div class="field" style="width:130px"><label>Betrag</label><div class="input-suffix">{{ payment_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ payment_form.paid_on }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ payment_form.method }}</div>
+    <button class="btn btn-primary" type="submit">Zahlung erfassen</button>
+  </form>
+  {% elif open_balance < 0 %}
+  <form method="post" action="{% url 'orders:add_refund' order.pk %}" class="card-foot inline-form" style="justify-content:flex-start;align-items:flex-end;flex-wrap:wrap">{% csrf_token %}
+    <div class="field" style="width:130px"><label>Erstattung</label><div class="input-suffix">{{ refund_form.amount }}<span>€</span></div></div>
+    <div class="field" style="width:150px"><label>Datum</label>{{ refund_form.paid_on }}</div>
+    <div class="field" style="width:170px"><label>Zahlungsart</label>{{ refund_form.method }}</div>
+    <button class="btn btn-primary" type="submit">Erstattung erfassen</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-head"><h2>{% icon 'flag' 18 %} Abschluss</h2>{% if order.status == "completed" %}{% status_badge "Abgeschlossen" "success" %}{% endif %}</div>
+  <div class="card-body">
+    {% if order.status == "completed" %}
+    <p>Der Auftrag wurde am {{ order.completed_at|d }} abgeschlossen. Alle Dokumente bleiben gemäß den gesetzlichen Fristen archiviert.</p>
+    {% elif blockers %}
+    <div class="lock-note">{% icon 'list-checks' %}<div><strong>Vor dem Abschluss noch erledigen:</strong><ul>{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul></div></div>
+    {% else %}
+    <div class="alert alert-success mb">{% icon 'circle-check' %}<div>Alle Vorgänge sind erledigt: Rücknahme abgeschlossen, Kaution abgerechnet und alle Beträge ausgeglichen.</div></div>
+    <form method="post" action="{% url 'orders:close' order.pk %}">{% csrf_token %}<button class="btn btn-primary btn-lg" type="submit">{% icon 'flag' 18 %} Auftrag abschließen</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

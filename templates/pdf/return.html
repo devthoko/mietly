@@ -1,0 +1,34 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Protokoll</td><td>{{ d.number }}</td></tr>
+<tr><td>Rücknahme</td><td>{{ d.performed_at }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Rücknahmeprotokoll</h1><div class="subtitle">{{ d.order.event }}</div></div>
+<p class="small">Zurückgenommen durch {{ d.company.name }}{% if d.performed_by %} ({{ d.performed_by }}){% endif %}{% if d.returned_by %} von <strong>{{ d.returned_by }}</strong>{% endif %}</p>
+<table class="items">
+  <thead><tr><th>Artikel</th><th class="qty">Übergeben</th><th class="qty">Zurück</th><th class="qty">Beschädigt</th><th class="qty">Fehlt</th><th>Bemerkung</th></tr></thead>
+  <tbody>{% for i in d.items %}
+    <tr><td><strong>{{ i.name }}</strong><div class="small muted">{{ i.number }}</div></td>
+      <td class="qty">{{ i.expected }}</td><td class="qty strong">{{ i.returned }}</td>
+      <td class="qty {% if i.damaged %}warn{% endif %}">{{ i.damaged }}</td><td class="qty {% if i.missing %}warn{% endif %}">{{ i.missing }}</td>
+      <td class="small">{{ i.note }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+{% if d.damages %}
+<h2>Festgestellte Schäden, Fehlmengen und Zusatzkosten</h2>
+<table class="items">
+  <thead><tr><th>Art</th><th>Beschreibung</th><th class="qty">Menge</th><th class="total">Betrag</th></tr></thead>
+  <tbody>{% for dm in d.damages %}<tr><td>{{ dm.kind }}</td><td>{{ dm.description }}</td><td class="qty">{{ dm.quantity }}</td><td class="total">{{ dm.amount }}</td></tr>{% endfor %}</tbody>
+</table>
+<table class="totals"><tr class="grand"><td>Summe</td><td>{{ d.damages_total }}</td></tr></table>
+<p class="small muted mt">Die Beträge werden mit der Kaution verrechnet oder gesondert in Rechnung gestellt; Sie erhalten dazu eine Abrechnung. Ihnen bleibt der Nachweis gestattet, dass kein oder ein geringerer Schaden entstanden ist.</p>
+{% else %}
+<div class="note-box">Alle Mietgegenstände wurden vollständig und ohne Beanstandung zurückgegeben. Vielen Dank!</div>
+{% endif %}
+{% if d.notes %}<div class="note-box"><strong>Bemerkungen:</strong><br>{{ d.notes|linebreaksbr }}</div>{% endif %}
+{% if d.photos %}
+<h2>Fotos bei Rücknahme</h2>
+<div class="photos">{% for p in d.photos %}<figure><img src="{{ p.path|fileuri }}" alt=""><figcaption>{{ p.caption|default:p.article }}</figcaption></figure>{% endfor %}</div>
+{% endif %}
+{% endblock %}

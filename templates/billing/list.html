@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Rechnungen{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Verwaltung</div><h1>Rechnungen</h1></div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'billing:payments' %}">{% icon 'banknote' 16 %} Zahlungen</a>
+    <a class="btn" href="{% query export='csv' seite='' %}">{% icon 'download' 16 %} CSV für Steuerbüro</a>
+  </div>
+</div>
+<div class="card">
+  <form class="toolbar" method="get">
+    <div class="tabs">
+      <a href="{% query status='' seite='' %}" class="{% if not status %}active{% endif %}">Alle</a>
+      <a href="{% query status='offen' seite='' %}" class="{% if status == 'offen' %}active{% endif %}">Offen</a>
+    </div>
+    <input type="hidden" name="status" value="{{ status }}">
+    <div class="input-group">{% icon 'search' 16 %}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Rechnungs- oder Auftragsnummer, Kunde …"></div>
+    <select class="input" name="jahr" style="width:auto" data-autosubmit-select><option value="">Alle Jahre</option>{% for y in years %}<option value="{{ y }}" {% if year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>{% endfor %}</select>
+  </form>
+  {% if page.object_list %}
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Rechnung</th><th>Kunde / Auftrag</th><th class="hide-sm">Datum</th><th class="right hide-sm">USt</th><th class="right">Brutto</th><th>Status</th></tr></thead>
+    <tbody>{% for r in page %}{% with inv=r.inv %}
+      <tr class="link" data-href="{{ inv.order.get_absolute_url }}?schritt=invoice">
+        <td><div class="cell-title">{{ inv.number }}</div><div class="cell-sub">{{ inv.get_kind_display }}{% if inv.cancels %} zu {{ inv.cancels.number }}{% endif %}</div></td>
+        <td>{{ inv.order.customer }}<div class="cell-sub">{{ inv.order.number }} · {{ inv.order.title }}</div></td>
+        <td class="hide-sm nowrap">{{ inv.issue_date|d }}<div class="cell-sub">fällig {{ inv.due_date|d }}</div></td>
+        <td class="right num hide-sm">{{ inv.total_vat|euro }}</td>
+        <td class="right num strong">{{ inv.total_gross|euro }}</td>
+        <td>{% if inv.is_cancelled %}{% status_badge "Storniert" "danger" %}{% elif inv.kind == "cancellation" %}{% status_badge "Storno" %}{% elif r.paid %}{% status_badge "Bezahlt" "success" %}{% elif r.paid is False %}{% status_badge "Offen" "warning" %}{% endif %}</td>
+      </tr>{% endwith %}{% endfor %}
+    </tbody>
+    <tfoot><tr><td colspan="3">Summe der Auswahl</td><td class="right num hide-sm">{{ totals.vat|euro }}</td><td class="right num">{{ totals.gross|euro }}</td><td></td></tr></tfoot>
+  </table></div>
+  {% include "components/pagination.html" %}
+  {% else %}
+  <div class="empty"><div class="empty-icon">{% icon 'receipt-text' 22 %}</div><h3>Keine Rechnungen</h3><p>Rechnungen werden im Auftrag nach unterschriebenem Mietvertrag erstellt.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

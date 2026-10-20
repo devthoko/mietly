@@ -1,0 +1,25 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Protokoll</td><td>{{ d.number }}{% if d.version > 1 %} (V{{ d.version }}){% endif %}</td></tr>
+<tr><td>Übergabe</td><td>{{ d.performed_at }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Übergabeprotokoll</h1><div class="subtitle">{{ d.order.event }}</div></div>
+<p class="small">Übergeben durch {{ d.company.name }}{% if d.performed_by %} ({{ d.performed_by }}){% endif %} an <strong>{{ d.recipient }}</strong> · {{ d.order.fulfillment }}</p>
+<table class="items">
+  <thead><tr><th>Artikel</th><th class="qty">Geplant</th><th class="qty">Übergeben</th><th style="width:28mm">Zustand</th><th>Vorhandene Schäden / Bemerkung</th></tr></thead>
+  <tbody>{% for i in d.items %}
+    <tr><td><strong>{{ i.name }}</strong><div class="small muted">{{ i.number }}</div></td>
+      <td class="qty">{{ i.planned }}</td><td class="qty strong {% if i.deviation %}warn{% endif %}">{{ i.quantity }}</td>
+      <td>{{ i.condition }}</td><td class="small">{{ i.damage }}{% if i.damage and i.note %}<br>{% endif %}{{ i.note }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+{% if d.notes %}<div class="note-box"><strong>Bemerkungen:</strong><br>{{ d.notes|linebreaksbr }}</div>{% endif %}
+{% if d.photos %}
+<h2>Fotos bei Übergabe</h2>
+<div class="photos">{% for p in d.photos %}<figure><img src="{{ p.path|fileuri }}" alt=""><figcaption>{{ p.caption|default:p.article }}</figcaption></figure>{% endfor %}</div>
+{% endif %}
+<div class="mt">{{ d.confirm|safe }}</div>
+<p class="small muted">Rückgabe vereinbart: {{ d.order.return }}</p>
+{% include "pdf/_signature.html" with label=d.signature_label %}
+{% endblock %}

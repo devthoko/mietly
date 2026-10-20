@@ -1,0 +1,28 @@
+{% extends "core/settings/_layout.html" %}
+{% block settings_title %}{% if obj.pk %}{{ obj.display_name }}{% else %}Neuer Benutzer{% endif %}{% endblock %}
+{% block settings_actions %}<a class="btn" href="{% url 'core:users' %}">{% icon 'arrow-left' 16 %} Zurück</a>{% endblock %}
+{% block settings_content %}
+<form method="post" class="card" novalidate autocomplete="off">
+  {% csrf_token %}
+  {% for e in form.non_field_errors %}<div class="form-section"><div class="alert alert-danger">{% icon 'circle-alert' %}<div>{{ e }}</div></div></div>{% endfor %}
+  <div class="form-section">
+    <div class="form-grid">
+      {% field form.first_name "col-3" %}
+      {% field form.last_name "col-3" %}
+      {% field form.username "col-3" %}
+      {% field form.email "col-3" %}
+      {% field form.role "col-3" %}
+      <div class="col-3" style="align-self:end">{% field form.is_active %}</div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">{% if obj.pk %}Passwort neu setzen{% else %}Passwort{% endif %}</div>
+    <div class="form-section-desc">{% if obj.pk %}Nur ausfüllen, wenn das Passwort geändert werden soll. {% endif %}Mindestens 10 Zeichen, nicht nur Ziffern.</div>
+    <div class="form-grid">
+      {% field form.password1 "col-3" %}
+      {% field form.password2 "col-3" %}
+    </div>
+  </div>
+  <div class="card-foot"><button class="btn btn-primary" type="submit">Speichern</button></div>
+</form>
+{% endblock %}

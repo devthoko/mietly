@@ -1,0 +1,43 @@
+{# Erwartet: doc #}
+<div class="doc-item" style="padding:16px 20px;align-items:flex-start">
+  <span class="doc-icon" style="{% if doc.is_signed %}background:var(--success-soft);color:var(--success){% endif %}">{% if doc.is_signed %}{% icon 'file-check-2' 18 %}{% else %}{% icon 'file-text' 18 %}{% endif %}</span>
+  <div style="flex:1;min-width:0" class="stack-sm">
+    <div class="row wrap" style="gap:8px">
+      <span class="strong">{{ doc.display_name }}</span>
+      {% if doc.is_signed %}{% status_badge "Unterschrieben" "success" %}
+      {% elif doc.requires_signature %}{% status_badge "Wartet auf Unterschrift" "warning" %}
+      {% else %}{% status_badge doc.get_status_display "info" %}{% endif %}
+    </div>
+    <div class="doc-meta">Erstellt am {{ doc.created_at|dt }} von {{ doc.created_by.display_name|default:"System" }}{% if doc.last_emailed_at %} · per E-Mail gesendet am {{ doc.last_emailed_at|dt }}{% endif %}</div>
+    {% if doc.is_signed %}
+    <div class="doc-meta">{% if doc.signature_method == "drawn" %}Digital unterschrieben{% else %}Unterschriebenes Dokument hochgeladen{% endif %} von <strong>{{ doc.signer_name }}</strong> am {{ doc.signed_at|dt }}</div>
+    {% endif %}
+    <div class="row wrap" style="margin-top:6px">
+      <a class="btn btn-sm" href="{% url 'documents:download' doc.pk %}" target="_blank">{% icon 'eye' 14 %} Ansehen</a>
+      <a class="btn btn-sm" href="{% url 'documents:download' doc.pk %}?download=1">{% icon 'download' 14 %} Herunterladen</a>
+      {% include "documents/_print_button.html" %}
+      {% if doc.is_signed %}<a class="btn btn-sm btn-ghost" href="{% url 'documents:download' doc.pk %}?fassung=original" target="_blank">Original ohne Unterschrift</a>{% endif %}
+      {% if doc.kind != "packing_list" and doc.status != "void" %}<a class="btn btn-sm" href="{% url 'documents:email' doc.pk %}">{% icon 'mail' 14 %} Per E-Mail senden</a>{% endif %}
+      {% if doc.requires_signature and not doc.is_signed and doc.status == "issued" and order.is_active %}
+      <a class="btn btn-sm btn-primary" href="{% url 'documents:sign' doc.pk %}">{% icon 'signature' 14 %} Jetzt unterschreiben</a>
+      <button class="btn btn-sm" type="button" data-open-modal="dlg-upload-{{ doc.pk }}">{% icon 'upload' 14 %} Unterschriebenes PDF hochladen</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% if doc.requires_signature and not doc.is_signed and doc.status == "issued" %}
+<dialog class="modal" id="dlg-upload-{{ doc.pk }}">
+  <form method="post" action="{% url 'documents:upload_signed' doc.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-head"><h2>Unterschriebenes Dokument hochladen</h2><button class="btn btn-ghost btn-icon btn-sm" data-close-modal type="button">{% icon 'x' 16 %}</button></div>
+    <div class="modal-body stack">
+      <p class="small muted">Laden Sie das vom Kunden unterschriebene {{ doc.get_kind_display }} {{ doc.number }} als PDF oder Foto hoch. Bitte prüfen Sie vorher, dass es sich um genau diese Fassung handelt.</p>
+      <div class="field"><label for="up-name-{{ doc.pk }}">Unterschrieben von<span class="req">*</span></label>
+        <input class="input" id="up-name-{{ doc.pk }}" name="signer_name" value="{{ order.customer.full_name }}" required maxlength="120"></div>
+      <div class="field"><label for="up-file-{{ doc.pk }}">Datei (PDF, JPG oder PNG)<span class="req">*</span></label>
+        <input class="input" id="up-file-{{ doc.pk }}" type="file" name="file" accept="application/pdf,image/jpeg,image/png" required style="padding-top:6px"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" data-close-modal>Abbrechen</button><button class="btn btn-primary" type="submit">Hochladen</button></div>
+  </form>
+</dialog>
+{% endif %}

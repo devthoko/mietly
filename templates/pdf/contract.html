@@ -1,0 +1,32 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>Vertragsnummer</td><td>{{ d.number }}{% if d.version > 1 %} (V{{ d.version }}){% endif %}</td></tr>
+<tr><td>Datum</td><td>{{ d.date }}</td></tr>
+{% endblock %}
+{% block content %}
+<div class="title-row"><h1>Mietvertrag</h1><div class="subtitle">zwischen {{ d.company.name }} (Vermieter) und {{ d.customer.name }} (Mieter)</div></div>
+{% include "pdf/_event.html" %}
+<div class="contract-text">{{ d.contract|safe }}</div>
+
+{% include "pdf/_signature.html" with label=d.signature_label %}
+<div class="signatures" style="margin-top:6mm">
+  <div class="sigbox"></div>
+  <div class="sigbox"><div class="space"></div><div class="line">Unterschrift Vermieter – {{ d.company.name }}</div></div>
+</div>
+
+<div class="page-break"></div>
+<h2>Anlage 1 – Mietgegenstände und Preise</h2>
+{% include "pdf/_items.html" with show_discount=True %}
+{% if d.order.deposit %}<p class="mt"><strong>Kaution:</strong> {{ d.order.deposit }}</p>{% endif %}
+
+<h2>Anlage 2 – Wiederbeschaffungswerte</h2>
+<table class="items">
+  <thead><tr><th>Artikel</th><th class="qty">Menge</th><th class="total">Wert je Stück</th></tr></thead>
+  <tbody>{% for r in d.replacement %}<tr><td>{{ r.name }}</td><td class="qty">{{ r.quantity }}</td><td class="total">{{ r.value }}</td></tr>{% endfor %}</tbody>
+</table>
+
+<div class="legal mt">{{ d.terms|safe }}</div>
+<div class="page-break"></div>
+<div class="legal">{{ d.withdrawal|safe }}</div>
+<div class="legal mt"><h3>Datenschutz</h3>{{ d.privacy|safe }}</div>
+{% endblock %}

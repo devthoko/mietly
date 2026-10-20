@@ -1,0 +1,45 @@
+<form method="post" action="{% url 'orders:save_event' order.pk %}" class="card" novalidate data-guard>
+  {% csrf_token %}
+  <div class="card-head"><h2>{% icon 'party-popper' 18 %} Veranstaltung & Termine</h2></div>
+  {% if event_form.non_field_errors %}<div class="form-section">{% for e in event_form.non_field_errors %}<div class="alert alert-danger">{% icon 'circle-alert' %}<div>{{ e }}</div></div>{% endfor %}</div>{% endif %}
+  <div class="form-section">
+    <div class="form-grid">
+      {% field event_form.event_name "col-4" %}
+      {% field event_form.event_date "col-2" %}
+      {% field event_form.event_location "col-6" %}
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Übergabe</div>
+    <div class="choice-cards mb">
+      {% for radio in event_form.fulfillment %}
+      <label class="choice-card">{{ radio.tag }}
+        {% if radio.data.value == "pickup" %}{% icon 'store' 20 %}{% else %}{% icon 'truck' 20 %}{% endif %}
+        <span><span class="strong">{{ radio.choice_label }}</span><span class="small subtle" style="display:block">{% if radio.data.value == "pickup" %}Kunde holt ab und bringt zurück{% else %}Wir liefern und holen wieder ab{% endif %}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="form-grid">
+      <div class="col-6" data-show-when="fulfillment=delivery">{% field event_form.delivery_address %}
+        <div class="row wrap mt-sm" style="gap:6px">
+          {% if order.customer and order.customer.address_lines %}<button class="btn btn-sm btn-ghost" type="button" data-fill="id_delivery_address" data-value="{{ order.customer.address_inline }}">{% icon 'user' 14 %} Kundenanschrift übernehmen</button>{% endif %}
+          <button class="btn btn-sm btn-ghost" type="button" data-fill="id_delivery_address" data-fill-from="id_event_location">{% icon 'map-pin' 14 %} Veranstaltungsort übernehmen</button>
+          {% if delivery_fee %}<span class="hint">Die Lieferpauschale von {{ delivery_fee|euro }} wird automatisch als Position ergänzt.</span>{% endif %}
+        </div>
+      </div>
+      {% field event_form.handover_at "col-3" %}
+      {% field event_form.return_at "col-3" %}
+    </div>
+    <div class="hint mt-sm hidden" id="date-suggest-hint">Übergabe und Rückgabe wurden aus dem Eventdatum vorgeschlagen – bitte prüfen.</div>
+    {% if order.rental_days %}<div class="hint mt-sm">Mietdauer: {{ order.rental_days }} Tag{{ order.rental_days|pluralize:"e" }} · im Mietpreis enthalten: {{ company.included_rental_days }} Tage</div>{% endif %}
+  </div>
+  <div class="form-section">
+    <div class="form-grid">
+      {% field event_form.customer_note "col-3" %}
+      {% field event_form.notes "col-3" "Nur intern sichtbar" %}
+    </div>
+  </div>
+  {% if order.is_active %}
+  <div class="card-foot"><button class="btn btn-primary" type="submit">Speichern & weiter {% icon 'arrow-right' 16 %}</button></div>
+  {% endif %}
+</form>

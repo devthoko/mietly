@@ -1,0 +1,203 @@
+/* ==========================================================================
+   mietly – Gestaltung „Klar“
+   Hell und sachlich: kühles Grau, Petrol als einziger Akzent, durchgehend
+   serifenlos, flache Flächen mit feinen Linien statt Schatten. Auf großen
+   Bildschirmen eine schmale Symbolleiste und die Schrittleiste über dem Auftrag.
+
+   Wird nach app.css geladen; alle Regeln hängen an html.ui-klar. Größen für
+   Touch-Bedienung bleiben aus app.css erhalten – hier ändern sich Farben,
+   Schrift, Formen und das Layout auf dem Desktop.
+   ========================================================================== */
+
+:root.ui-klar {
+  --serif: var(--font);
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #f8fafb;
+  --surface-3: #eef2f5;
+  --border: #e2e8ed;
+  --border-strong: #ccd5dc;
+  --text: #14212b;
+  --text-2: #4b5a66;
+  --text-3: #7f8d98;
+
+  --accent: #0f766e;
+  --accent-hover: #0c5f59;
+  --accent-fg: #ffffff;
+  --accent-soft: #e3f3f1;
+  --accent-text: #0b625b;
+  --rose: #0f766e;
+  --rose-soft: #e3f3f1;
+
+  --success: #237a4b; --success-soft: #e4f4ea;
+  --warning: #a35f00; --warning-soft: #fdf1df;
+  --danger: #c0392b;  --danger-soft: #fdecea;
+  --info: #2f5f9e;    --info-soft: #e8f0fb;
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 10px;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-lg: 0 16px 40px rgba(20, 33, 43, .16);
+  --ring: 0 0 0 3px rgba(15, 118, 110, .25);
+  --topbar-h: 60px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.ui-klar:not([data-theme="light"]) {
+    --bg: #0e1418; --surface: #141c21; --surface-2: #182127; --surface-3: #1f2a31;
+    --border: #26333b; --border-strong: #35444e;
+    --text: #e8eef2; --text-2: #a9b7c1; --text-3: #73838e;
+    --accent: #2cc2b3; --accent-hover: #4fd3c5; --accent-fg: #06201d; --accent-soft: #123430; --accent-text: #5fd8cb;
+    --rose: #2cc2b3; --rose-soft: #123430;
+    --success: #5ccf8d; --success-soft: #14301f;
+    --warning: #f0b45a; --warning-soft: #33270f;
+    --danger: #f08277;  --danger-soft: #3a1c19;
+    --info: #8fb4ea;    --info-soft: #172438;
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, .5);
+    --ring: 0 0 0 3px rgba(44, 194, 179, .3);
+  }
+}
+:root.ui-klar[data-theme="dark"] {
+  --bg: #0e1418; --surface: #141c21; --surface-2: #182127; --surface-3: #1f2a31;
+  --border: #26333b; --border-strong: #35444e;
+  --text: #e8eef2; --text-2: #a9b7c1; --text-3: #73838e;
+  --accent: #2cc2b3; --accent-hover: #4fd3c5; --accent-fg: #06201d; --accent-soft: #123430; --accent-text: #5fd8cb;
+  --rose: #2cc2b3; --rose-soft: #123430;
+  --success: #5ccf8d; --success-soft: #14301f;
+  --warning: #f0b45a; --warning-soft: #33270f;
+  --danger: #f08277;  --danger-soft: #3a1c19;
+  --info: #8fb4ea;    --info-soft: #172438;
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, .5);
+  --ring: 0 0 0 3px rgba(44, 194, 179, .3);
+}
+
+/* ---------- Schrift ---------- */
+.ui-klar body { font-size: 14.5px; line-height: 1.5; font-feature-settings: "tnum" 0; }
+.ui-klar h1, .ui-klar h2, .ui-klar .serif { font-family: var(--font); font-weight: 700; letter-spacing: -.015em; }
+.ui-klar h1 { font-size: 26px; line-height: 1.2; }
+.ui-klar h2, .ui-klar .card-head h2 { font-size: 16px; font-weight: 700; }
+.ui-klar .card-head h2 .icon { color: var(--text-3); }
+.ui-klar .page-head .eyebrow { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); }
+.ui-klar .page-head { margin: 14px 0 20px; }
+
+/* ---------- Marke ---------- */
+.ui-klar .brand-mark { border-radius: 8px; background: var(--accent); color: var(--accent-fg); font-family: var(--font); font-style: normal; font-weight: 800; font-size: 16px; }
+.ui-klar .brand-name { font-family: var(--font); font-weight: 800; font-size: 18px; letter-spacing: -.03em; }
+.ui-klar .topbar-brand .brand-name { font-size: 18px; }
+
+/* ---------- Navigation & Kopfzeile ---------- */
+.ui-klar .sidebar { background: var(--surface); border-right: 1px solid var(--border); }
+.ui-klar .nav a { border-radius: 8px; font-weight: 600; color: var(--text-2); }
+.ui-klar .nav a:hover { background: var(--surface-3); }
+.ui-klar .nav a.active { background: var(--accent-soft); color: var(--accent-text); box-shadow: none; }
+.ui-klar .nav a.active .icon { opacity: 1; }
+.ui-klar .nav-label { font-family: var(--font); font-style: normal; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.ui-klar .topbar { background: var(--surface); border-bottom: 1px solid var(--border); backdrop-filter: none; }
+.ui-klar .search-trigger { border-radius: 8px; background: var(--surface-2); height: 38px; }
+.ui-klar .bottom-nav .bottom-nav-add { border-radius: 14px; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 35%, transparent); }
+
+/* ---------- Flächen ---------- */
+.ui-klar .card { border-radius: var(--radius-lg); box-shadow: none; border-color: var(--border); }
+.ui-klar .card-head { padding: 14px 18px; }
+.ui-klar .card-body { padding: 18px; }
+.ui-klar .card-foot { background: var(--surface-2); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.ui-klar .card.accent { background: var(--surface); border-color: var(--border); border-left: 4px solid var(--accent); }
+.ui-klar .card.warn { border-left: 4px solid var(--warning); }
+.ui-klar .kpi-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); }
+.ui-klar .kpi-label .icon { color: var(--accent); }
+.ui-klar .kpi-value { font-family: var(--font); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.ui-klar .doc-icon, .ui-klar .avatar { border-radius: 8px; }
+.ui-klar .avatar { background: var(--surface-3); color: var(--text-2); font-family: var(--font); font-size: 12px; font-weight: 700; }
+.ui-klar .avatar.accent { background: var(--accent-soft); color: var(--accent-text); }
+.ui-klar .empty .empty-icon { border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); }
+.ui-klar .empty h3 { font-family: var(--font); font-weight: 700; font-size: 17px; }
+
+/* ---------- Bedienelemente ---------- */
+.ui-klar .btn { border-radius: 8px; font-weight: 600; box-shadow: none; }
+.ui-klar .btn-primary { box-shadow: none; }
+.ui-klar .btn:not(.btn-primary):not(.btn-ghost) { border-color: var(--border-strong); }
+.ui-klar .input, .ui-klar select.input, .ui-klar textarea.input { border-radius: 8px; border-color: var(--border-strong); }
+.ui-klar .field label, .ui-klar .label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.ui-klar .badge { border-radius: 6px; font-weight: 700; font-size: 12px; }
+.ui-klar .tabs { border-radius: 8px; }
+.ui-klar .tabs a { border-radius: 6px; font-weight: 600; }
+.ui-klar .choice-card, .ui-klar .alert, .ui-klar .toast, .ui-klar .lock-note { border-radius: 8px; }
+.ui-klar .lock-note { background: var(--surface-3); color: var(--text-2); }
+.ui-klar .lock-note .icon { color: var(--text-3); }
+.ui-klar .quick-facts { border-radius: 10px; }
+
+/* ---------- Tabellen ---------- */
+.ui-klar .table th { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); background: var(--surface-2); }
+.ui-klar .table tbody tr.link:hover td { background: var(--surface-2); }
+.ui-klar .table .cell-title { font-weight: 700; }
+.ui-klar .pos-head { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; background: var(--surface-2); }
+.ui-klar .pos-foot > span:first-child, .ui-klar .table tfoot td:first-child { font-family: var(--font); font-size: 15px; font-weight: 800; }
+.ui-klar .summary-total { font-family: var(--font); font-size: 22px; font-weight: 800; }
+
+/* ---------- Auftragsakte ---------- */
+.ui-klar .step-dot { font-family: var(--font); font-size: 12px; font-weight: 800; width: 26px; height: 26px; border-radius: 7px; }
+.ui-klar .stepper li.done .step-dot { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.ui-klar .stepper li.current .step-dot { background: var(--surface); border: 2px solid var(--accent); color: var(--accent-text); box-shadow: var(--ring); }
+.ui-klar .stepper li.selected a { background: var(--accent-soft); }
+.ui-klar .stepper li.current .step-title { color: var(--accent-text); }
+.ui-klar .next-card .next-icon { border-radius: 8px; background: var(--accent); }
+.ui-klar .next-card .next-label { font-family: var(--font); font-style: normal; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-text); }
+.ui-klar .next-card .next-title { font-family: var(--font); font-size: 18px; font-weight: 800; }
+.ui-klar .mini-steps span { width: 10px; height: 4px; border-radius: 2px; }
+
+/* ---------- Kalender & Agenda ---------- */
+.ui-klar .agenda-date { background: var(--accent-soft); border-radius: 8px; }
+.ui-klar .agenda-date .dd { font-family: var(--font); font-weight: 800; font-size: 19px; }
+.ui-klar .agenda-date .mm { color: var(--accent-text); font-weight: 700; text-transform: uppercase; }
+.ui-klar .agenda-day-head { font-family: var(--font); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.ui-klar .cal-num { font-family: var(--font); font-weight: 700; }
+.ui-klar .cal-day.today .cal-num { background: var(--accent); }
+.ui-klar .cal-ev { border-radius: 4px; }
+
+/* ==========================================================================
+   Desktop: schmale Symbolleiste und Schrittleiste über dem Auftrag
+   ========================================================================== */
+@media (min-width: 1081px) {
+  .ui-klar { --sidebar-w: 88px; }
+  .ui-klar .app { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+  .ui-klar .sidebar { padding: 14px 8px; align-items: stretch; }
+  .ui-klar .brand { justify-content: center; padding: 2px 0 16px; }
+  .ui-klar .brand > span:last-child { display: none; }
+  .ui-klar .brand-mark { width: 38px; height: 38px; font-size: 19px; }
+  .ui-klar .nav { gap: 4px; }
+  .ui-klar .nav a { flex-direction: column; gap: 4px; padding: 9px 2px; font-size: 11px; line-height: 1.15; text-align: center; letter-spacing: .01em; }
+  .ui-klar .nav a .icon { width: 22px; height: 22px; }
+  .ui-klar .nav-label { font-size: 0; height: 1px; background: var(--border); margin: 8px 14px; padding: 0; }
+  .ui-klar .sidebar-foot { border-top: 0; padding-top: 8px; }
+  .ui-klar .user-chip { justify-content: center; padding: 8px 0; }
+  .ui-klar .user-chip > .stack-sm { display: none; }
+  .ui-klar .user-chip .avatar { width: 36px; height: 36px; }
+  .ui-klar .content { max-width: 1480px; padding: 8px 32px 48px; }
+
+  /* Auftrag: Schritte waagerecht über dem Inhalt, rechts die Übersicht */
+  .ui-klar .order-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+  .ui-klar .order-layout > .stepper { grid-column: 1 / -1; position: static; padding: 6px; }
+  .ui-klar .order-aside { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; }
+  .ui-klar .order-layout > .stack:not(.order-aside) { grid-column: 1; grid-row: 2; }
+  .ui-klar .stepper ol { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+  .ui-klar .stepper li { flex: 1 1 0; min-width: 104px; }
+  .ui-klar .stepper li a, .ui-klar .stepper li > span { flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 10px 6px; }
+  .ui-klar .stepper li a::after { display: none; }
+  .ui-klar .step-text { align-items: center; max-width: 100%; }
+  .ui-klar .step-sum { max-width: 100%; }
+  /* Die Kurzübersicht ist neben der Seitenleiste überflüssig */
+  .ui-klar .quick-facts { display: none; }
+}
+@media (min-width: 1081px) and (max-width: 1599px) {
+  .ui-klar .order-aside { grid-column: 1; grid-row: 3; display: grid; }
+  .ui-klar .order-layout { grid-template-columns: minmax(0, 1fr); }
+  .ui-klar .quick-facts { display: flex; }
+}
+
+/* Smartphone: Kennzahl-Überschriften ohne Großbuchstaben, damit sie nicht umbrechen */
+@media (max-width: 640px) {
+  .ui-klar .kpi-label { text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+  .ui-klar h1 { font-size: 24px; }
+}

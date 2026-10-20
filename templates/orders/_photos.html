@@ -1,0 +1,32 @@
+{# Erwartet: photos, stage, editable #}
+<div class="card">
+  <div class="card-head"><h2>{% icon 'camera' 18 %} Fotos</h2><span class="sub">{{ photos|length }}</span></div>
+  <div class="card-body stack">
+    {% if photos %}
+    <div class="photo-grid">
+      {% for p in photos %}
+      <figure>
+        <a href="{{ p.image.url }}" target="_blank"><img src="{{ p.image.url }}" alt="{{ p.caption }}" loading="lazy"></a>
+        <figcaption>{{ p.caption|default:p.article.name|default:"" }}</figcaption>
+        {% if editable %}<form method="post" action="{% url 'orders:delete_photo' order.pk p.pk %}" data-confirm="Foto löschen?" style="position:absolute;top:4px;right:4px">{% csrf_token %}<button class="btn btn-sm btn-icon" title="Löschen">{% icon 'x' 14 %}</button></form>{% endif %}
+      </figure>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if editable %}
+    <form method="post" action="{% url 'orders:upload_photos' order.pk stage %}" enctype="multipart/form-data" class="stack-sm">
+      {% csrf_token %}
+      <div class="row wrap">
+        <input class="input input-sm" name="caption" placeholder="Beschreibung (optional), z. B. „Kratzer am Sockel“" style="flex:1;min-width:200px">
+      </div>
+      <label class="dropzone">
+        {% icon 'camera' 22 %}
+        <span><strong>Fotos aufnehmen oder auswählen</strong><br><span class="small subtle">Auf Tablet und Smartphone öffnet sich direkt die Kamera</span></span>
+        <input type="file" name="images" accept="image/*" capture="environment" multiple data-autosubmit>
+      </label>
+    </form>
+    {% elif not photos %}
+    <p class="small subtle">Keine Fotos.</p>
+    {% endif %}
+  </div>
+</div>

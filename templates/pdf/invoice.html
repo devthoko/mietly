@@ -1,0 +1,36 @@
+{% extends "pdf/base.html" %}
+{% block info %}
+<tr><td>{% if d.kind == "cancellation" %}Stornorechnung{% else %}Rechnungsnummer{% endif %}</td><td>{{ d.number }}</td></tr>
+<tr><td>Rechnungsdatum</td><td>{{ d.date }}</td></tr>
+<tr><td>{{ d.period_label|default:"Leistungszeitraum" }}</td><td>{{ d.service_period }}</td></tr>
+{% if d.kind != "cancellation" %}<tr><td>Zahlbar bis</td><td>{{ d.due_date }}</td></tr>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="title-row">
+  <h1>{{ d.title }}</h1>
+  <div class="subtitle">{% if d.kind == "cancellation" %}zur Rechnung {{ d.cancels }} vom {{ d.cancels_date }}{% elif d.kind == "additional" %}Rechnung zu {{ d.order.event }}{% elif d.kind == "fee" %}Rechnung zur Stornierung von {{ d.order.event }}{% else %}{{ d.order.event }}{% endif %}</div>
+</div>
+{% if d.kind == "cancellation" %}
+<p>Hiermit stornieren wir die Rechnung {{ d.cancels }} vom {{ d.cancels_date }} vollständig. Die nachstehenden Beträge werden gutgeschrieben.</p>
+{% elif d.kind == "invoice" %}
+<p>Für die Vermietung der folgenden Gegenstände für Ihre Veranstaltung erlauben wir uns zu berechnen:</p>
+{% include "pdf/_event.html" %}
+{% elif d.kind == "fee" %}
+<p>Ihr Auftrag „{{ d.order.event }}“ wurde storniert. Gemäß den vereinbarten Stornobedingungen berechnen wir:</p>
+{% else %}
+<p>Nach Rückgabe der Mietgegenstände berechnen wir folgende Positionen:</p>
+{% endif %}
+{% include "pdf/_items.html" with show_discount=True %}
+
+{% if d.small_business %}<p class="small muted mt">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>{% endif %}
+{% if d.has_tax_free_damages %}<p class="small muted mt">Positionen mit 0 % USt: nicht umsatzsteuerbarer Schadensersatz.</p>{% endif %}
+
+{% if d.kind == "cancellation" %}
+{% if d.payment_note %}<div class="note-box keep"><p style="margin:0">{{ d.payment_note }}</p></div>{% endif %}
+{% else %}
+<div class="note-box keep">
+  {{ d.outro|safe }}
+  {% if d.company.iban %}<p class="small" style="margin:0"><strong>Bankverbindung:</strong> {{ d.company.account_holder }} · IBAN {{ d.company.iban }}{% if d.company.bic %} · BIC {{ d.company.bic }}{% endif %} · {{ d.company.bank_name }}<br><strong>Verwendungszweck:</strong> {{ d.number }}</p>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

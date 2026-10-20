@@ -1,0 +1,32 @@
+<div class="card" id="angebot"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <div class="card-head"><h2>{% icon 'file-text' 18 %} Angebot</h2>
+    {% if order.is_active and offer is None or order.is_active and not offer.is_signed %}
+    <form method="post" action="{% url 'orders:create_offer' order.pk %}">{% csrf_token %}
+      <button class="btn {% if offer %}btn-sm{% else %}btn-primary{% endif %}" type="submit" {% if not items %}disabled title="Bitte zuerst Positionen hinzufügen"{% endif %}>
+        {% if offer %}{% icon 'refresh-cw' 14 %} Neu erstellen{% else %}{% icon 'file-plus' 16 %} Angebot als PDF erstellen{% endif %}</button></form>
+    {% endif %}
+  </div>
+  {% if invoice_data_missing %}
+  <div class="card-body" style="padding-bottom:0"><div class="alert alert-warning small">{% icon 'triangle-alert' 16 %}<div>
+    <strong>Für die spätere Rechnung fehlen noch Angaben:</strong> {{ invoice_data_missing|join:"; " }}.
+    Am besten jetzt ergänzen – ohne sie kann nach der Vertragsunterschrift keine Rechnung erstellt werden.</div></div></div>
+  {% endif %}
+  {% if offer %}
+    {% include "orders/_doc_card.html" with doc=offer %}
+    {% if offer.is_signed and order.is_active and not main_invoice %}
+    <div class="card-foot" style="justify-content:space-between">
+      <span class="small subtle">Änderungen an den Positionen erfordern eine neue, erneut zu unterschreibende Angebotsversion. Ein bestehender Mietvertrag wird dabei ersetzt.</span>
+      <form method="post" action="{% url 'orders:create_offer' order.pk %}" data-confirm="Neue Angebotsversion erstellen? Das unterschriebene Angebot{% if state.steps.3.done %} und der unterschriebene Mietvertrag{% endif %} werden ersetzt und müssen neu unterschrieben werden.">{% csrf_token %}
+        <button class="btn btn-sm" type="submit">{% icon 'file-pen-line' 14 %} Angebot überarbeiten</button></form>
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="card-body small muted">Sobald alle Positionen erfasst sind, erstellen Sie das Angebot als PDF. Es kann dann gedruckt, per E-Mail versendet und digital unterschrieben werden. <strong>Ohne unterschriebenes Angebot kann kein Mietvertrag erstellt werden.</strong></div>
+  {% endif %}
+  {% if offer_history|length > 1 %}
+  <div class="card-foot" style="justify-content:flex-start;flex-direction:column;align-items:stretch;gap:4px">
+    <div class="label">Frühere Versionen</div>
+    {% for d in offer_history %}{% if d.pk != offer.pk %}<a class="small" href="{% url 'documents:download' d.pk %}" target="_blank">{{ d.display_name }} · {{ d.created_at|d }} · {{ d.get_status_display }}</a>{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,28 @@
+<div class="card">
+  <div class="card-head"><h2>{% icon 'user' 18 %} Kunde</h2></div>
+  {% if order.customer %}
+  <div class="card-body row wrap" style="gap:16px">
+    <span class="avatar accent" style="width:44px;height:44px;font-size:16px">{{ order.customer.full_name|initials }}</span>
+    <div style="flex:1;min-width:200px">
+      <div class="strong" style="font-size:15px">{{ order.customer.full_name }}</div>
+      <div class="small muted">{{ order.customer.number }}{% if order.customer.address_inline %} · {{ order.customer.address_inline }}{% endif %}</div>
+      <div class="small muted">{{ order.customer.email }}{% if order.customer.phone %} · {{ order.customer.phone }}{% endif %}</div>
+    </div>
+    <a class="btn" href="{% url 'customers:edit' order.customer.pk %}">{% icon 'pencil' 16 %} Kundendaten bearbeiten</a>
+  </div>
+  {% if not order.customer.address_lines %}
+  <div class="card-body" style="padding-top:0"><div class="alert alert-warning">{% icon 'triangle-alert' %}<div>Für Vertrag und Rechnung wird die Anschrift des Kunden benötigt.</div></div></div>
+  {% endif %}
+  {% endif %}
+  {% if customer_locked %}
+  <div class="card-foot" style="justify-content:flex-start"><span class="small subtle">{% icon 'lock' 14 %} Nach dem Erstellen des Angebots kann der Kunde nicht mehr gewechselt werden.</span></div>
+  {% elif order.is_active %}
+  <div class="card-body" style="border-top:1px solid var(--border)">
+    <div class="label mb-sm">{% if order.customer %}Anderen Kunden wählen{% else %}Kunden suchen{% endif %}</div>
+    <div class="input-group">{% icon 'search' 16 %}
+      <input class="input" type="search" name="q" placeholder="Name, E-Mail oder Telefon" autocomplete="off"
+             hx-get="{% url 'orders:customer_picker' order.pk %}" hx-trigger="input changed delay:200ms, search" hx-target="#picker-customers"></div>
+  </div>
+  <div id="picker-customers"></div>
+  {% endif %}
+</div>
