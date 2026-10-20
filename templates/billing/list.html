@@ -5,9 +5,26 @@
   <div><div class="eyebrow">Verwaltung</div><h1>Rechnungen</h1></div>
   <div class="page-actions">
     <a class="btn" href="{% url 'billing:payments' %}">{% icon 'banknote' 16 %} Zahlungen</a>
-    <a class="btn" href="{% query export='csv' seite='' %}">{% icon 'download' 16 %} CSV für Steuerbüro</a>
+    <a class="btn" href="{% query export='csv' seite='' %}">{% icon 'download' 16 %} CSV dieser Liste</a>
   </div>
 </div>
+
+{% if request.user.is_admin %}
+<form class="card export-card mb" method="get" action="{% url 'billing:month_export' %}" data-no-progress>
+  <div class="card-body row wrap" style="gap:12px 16px">
+    <span class="doc-icon" style="background:var(--accent-soft);color:var(--accent-text)">{% icon 'folder-archive' 18 %}</span>
+    <div style="flex:1 1 260px;min-width:0">
+      <div class="strong">Monatsexport fürs Steuerbüro</div>
+      <div class="small muted">Ein ZIP mit allen Rechnungen als PDF, Rechnungsausgangsbuch, Zahlungen, Kautionen und einer Zusammenfassung.</div>
+    </div>
+    <div class="row" style="gap:8px">
+      <label class="sr-only" for="export-month">Monat</label>
+      <select class="input" id="export-month" name="monat" style="width:auto">{% for m in export_months %}<option value="{{ m.value }}" {% if m.value == default_month %}selected{% endif %}>{{ m.label }}</option>{% endfor %}</select>
+      <button class="btn btn-primary" type="submit">{% icon 'download' 16 %} Herunterladen</button>
+    </div>
+  </div>
+</form>
+{% endif %}
 <div class="card">
   <form class="toolbar" method="get">
     <div class="tabs">

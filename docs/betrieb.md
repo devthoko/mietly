@@ -30,6 +30,7 @@ sudo mietly logs -f       # live mitlesen
 | WebDAV / Nextcloud | optionale Synchronisierung von Dokumenten und verschlüsselten Backups |
 | Benutzer | Administratoren und Mitarbeiter |
 | Backups | Übersicht, manuelles Backup, Download |
+| Rechnungen → Monatsexport | ZIP für das Steuerbüro: alle Rechnungen eines Monats als PDF, Rechnungsausgangsbuch (CSV mit USt je Steuersatz), Zahlungen, Kautionen und eine Zusammenfassung (nur Administratoren) |
 
 ### Auf dem Server: `/etc/mietly/mietly.env`
 

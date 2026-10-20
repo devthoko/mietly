@@ -208,7 +208,7 @@
   });
   document.addEventListener("submit", (e) => {
     const form = e.target;
-    if (e.defaultPrevented || form.hasAttribute("hx-post") || form.hasAttribute("hx-get") || form.target === "_blank") return;
+    if (e.defaultPrevented || form.hasAttribute("hx-post") || form.hasAttribute("hx-get") || form.target === "_blank" || "noProgress" in form.dataset) return;  // Downloads verlassen die Seite nicht
     startProgress();
   });
   window.addEventListener("pageshow", () => { pending = 0; clearTimeout(progressTimer); progress.classList.remove("active"); });

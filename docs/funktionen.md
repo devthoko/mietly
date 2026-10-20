@@ -36,6 +36,6 @@
 * Optionale WebDAV-/Nextcloud-Synchronisierung (Dokumente und verschlüsselte Backups)
 * Benutzerverwaltung (Administrator, Mitarbeiter), Aktivitätsprotokoll
 * Datenschutz: Datenauskunft je Kunde, Anonymisierung nach Ablauf der Aufbewahrungsfristen
-* Rechnungsexport als CSV für das Steuerbüro
+* Monatsexport fürs Steuerbüro: ZIP mit allen Rechnungs-PDFs, Rechnungsausgangsbuch, Zahlungen, Kautionen und Zusammenfassung
 * Hell- und Dunkelmodus, für Desktop, Tablet und Smartphone
 

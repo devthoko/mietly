@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 
 from .models import Invoice, Payment
@@ -59,7 +60,12 @@ def invoice_list(request):
         agg = qs.aggregate(gross=Sum("total_gross"), vat=Sum("total_vat"))
         totals = {"gross": agg["gross"] or Decimal("0"), "vat": agg["vat"] or Decimal("0")}
     years = sorted({d.year for d in Invoice.objects.dates("issue_date", "year")}, reverse=True)
-    return render(request, "billing/list.html", {"page": page, "q": q, "status": status, "year": year, "years": years, "totals": totals})
+    from datetime import timedelta
+
+    from .export import available_months
+
+    last_month = (timezone.localdate().replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+    return render(request, "billing/list.html", {"page": page, "q": q, "status": status, "year": year, "years": years, "totals": totals, "export_months": available_months(), "default_month": last_month})
 
 
 def _cell(value):
@@ -90,3 +96,31 @@ def payment_list(request):
     qs = Payment.objects.select_related("order", "order__customer", "created_by").order_by("-paid_on", "-id")
     page = Paginator(qs, 50).get_page(request.GET.get("seite"))
     return render(request, "billing/payments.html", {"page": page})
+
+
+def month_export(request):
+    """ZIP-Archiv eines Monats für das Steuerbüro (nur Administratoren)."""
+    import re
+
+    from django.core.exceptions import PermissionDenied
+
+    from apps.core import audit
+
+    from .export import build_month_export
+
+    if not request.user.is_admin:
+        raise PermissionDenied("Der Monatsexport ist Administratoren vorbehalten.")
+    value = request.GET.get("monat", "")
+    m = re.fullmatch(r"(20\d{2})-(0[1-9]|1[0-2])", value)
+    if not m:
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        messages.error(request, "Bitte einen Monat auswählen.")
+        return redirect("billing:list")
+    name, data, stats = build_month_export(int(m.group(1)), int(m.group(2)))
+    audit.log(request.user, "export", f"Monatsexport {value} erstellt ({stats['invoices']} Rechnungen, {stats['payments']} Zahlungen)")
+    response = HttpResponse(data, content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{name}"'
+    response["Cache-Control"] = "no-store"
+    return response
